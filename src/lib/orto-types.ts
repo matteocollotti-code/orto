@@ -35,6 +35,10 @@ export type Plant = {
   potType: PotType;
   exposure?: string;
   notes?: string;
+  heightCm?: number;
+  spreadCm?: number;
+  potDiameterCm?: number;
+  lastMeasuredAt?: string;
   addedAt: string;
 };
 

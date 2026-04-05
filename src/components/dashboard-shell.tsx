@@ -14,6 +14,7 @@ import {
   Leaf,
   MapPin,
   Plus,
+  Ruler,
   Sprout,
   Trees,
 } from "lucide-react";
@@ -21,7 +22,13 @@ import { PlantIllustration } from "@/components/plant-illustration";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -45,8 +52,17 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { ENVIRONMENT_OPTIONS, POT_OPTIONS, SPECIES_OPTIONS } from "@/lib/plant-profiles";
-import type { DashboardState, EnvironmentKey, SpeciesKey } from "@/lib/orto-types";
+import {
+  ENVIRONMENT_OPTIONS,
+  POT_OPTIONS,
+  SPECIES_OPTIONS,
+} from "@/lib/plant-profiles";
+import type {
+  DashboardPlant,
+  DashboardState,
+  EnvironmentKey,
+  SpeciesKey,
+} from "@/lib/orto-types";
 import { formatDate, formatDateTime } from "@/lib/utils";
 
 type DashboardShellProps = {
@@ -61,6 +77,20 @@ type PlantFormState = {
   potType: "vaso" | "terra" | "acquacoltura";
   exposure: string;
   notes: string;
+  heightCm: string;
+  spreadCm: string;
+  potDiameterCm: string;
+};
+
+type PlantMeasurementsState = {
+  plantId: string;
+  plantName: string;
+  customName: string;
+  exposure: string;
+  notes: string;
+  heightCm: string;
+  spreadCm: string;
+  potDiameterCm: string;
 };
 
 const INITIAL_FORM: PlantFormState = {
@@ -71,6 +101,9 @@ const INITIAL_FORM: PlantFormState = {
   potType: "vaso",
   exposure: "",
   notes: "",
+  heightCm: "",
+  spreadCm: "",
+  potDiameterCm: "",
 };
 
 export function DashboardShell({ initialState }: DashboardShellProps) {
@@ -78,7 +111,10 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
   const [activeTab, setActiveTab] = useState<"tutte" | EnvironmentKey>("tutte");
   const [activePerson, setActivePerson] = useState("Persona 1");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isMeasurementsDialogOpen, setIsMeasurementsDialogOpen] = useState(false);
   const [form, setForm] = useState<PlantFormState>(INITIAL_FORM);
+  const [measurementsForm, setMeasurementsForm] =
+    useState<PlantMeasurementsState | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -106,7 +142,12 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
     casa: dashboard.tasksToday.filter((task) => task.environment === "casa").length,
   };
 
-  function handleToggleTask(taskId: string, plantId: string, taskType: string, done: boolean) {
+  function handleToggleTask(
+    taskId: string,
+    plantId: string,
+    taskType: string,
+    done: boolean,
+  ) {
     setPendingTaskId(taskId);
     setNotice(null);
 
@@ -175,6 +216,65 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
     });
   }
 
+  function openMeasurementsDialog(plant: DashboardPlant) {
+    setMeasurementsForm({
+      plantId: plant.id,
+      plantName: plant.displayName,
+      customName: plant.customName,
+      exposure: plant.exposure ?? "",
+      notes: plant.notes ?? "",
+      heightCm: plant.heightCm ? String(plant.heightCm) : "",
+      spreadCm: plant.spreadCm ? String(plant.spreadCm) : "",
+      potDiameterCm: plant.potDiameterCm ? String(plant.potDiameterCm) : "",
+    });
+    setIsMeasurementsDialogOpen(true);
+  }
+
+  function closeMeasurementsDialog(open: boolean) {
+    setIsMeasurementsDialogOpen(open);
+
+    if (!open) {
+      setMeasurementsForm(null);
+    }
+  }
+
+  function handleSaveMeasurements() {
+    if (!measurementsForm) {
+      return;
+    }
+
+    setNotice(null);
+
+    startTransition(() => {
+      void (async () => {
+        try {
+          const response = await fetch("/api/plants/update", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(measurementsForm),
+          });
+
+          if (!response.ok) {
+            throw new Error("Non sono riuscito a salvare misure e dettagli.");
+          }
+
+          const nextState = (await response.json()) as DashboardState;
+          setDashboard(nextState);
+          setMeasurementsForm(null);
+          setIsMeasurementsDialogOpen(false);
+        } catch (error) {
+          setNotice(
+            error instanceof Error
+              ? error.message
+              : "Errore durante il salvataggio delle misure.",
+          );
+        }
+      })();
+    });
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="relative isolate overflow-hidden">
@@ -200,10 +300,10 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
           })}
 
           {renderPlantSections({
-            dashboard,
             activeTab,
             setActiveTab,
             plants,
+            openMeasurementsDialog,
           })}
 
           {renderAssumptions(dashboard)}
@@ -216,6 +316,15 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
         form,
         setForm,
         handleAddPlant,
+        isPending,
+      })}
+
+      {renderMeasurementsDialog({
+        isOpen: isMeasurementsDialogOpen,
+        onOpenChange: closeMeasurementsDialog,
+        measurementsForm,
+        setMeasurementsForm,
+        handleSaveMeasurements,
         isPending,
       })}
     </div>
@@ -253,7 +362,9 @@ function renderHeader(_props: {
 
           <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">oRTO</p>
+              <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
+                oRTO
+              </p>
               <h1 className="mt-2 max-w-3xl text-4xl font-semibold tracking-[-0.06em] sm:text-5xl">
                 Casa e balcone nello stesso quadro operativo.
               </h1>
@@ -262,8 +373,9 @@ function renderHeader(_props: {
 
           <p className="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">
             {dashboard.weather.summary} Oggi il balcone riceve attenzione speciale
-            sull&apos;acqua, mentre dentro casa la dashboard usa intervalli specie-specifici
-            e tiene traccia di chi ha già fatto cosa.
+            sull&apos;acqua, mentre dentro casa la dashboard usa intervalli specie-specifici,
+            salva chi ha fatto ogni task e puo affinare le dosi in base alle misure
+            reali delle piante.
           </p>
         </div>
 
@@ -293,7 +405,7 @@ function renderHeader(_props: {
                 {dashboard.stats.taskCount}
               </p>
               <p className="text-sm text-muted-foreground">
-                {dashboard.stats.completedCount} già segnati come fatti
+                {dashboard.stats.completedCount} gia segnati come fatti
               </p>
             </div>
             <div className="rounded-[1.35rem] border border-border/70 bg-secondary/40 p-3">
@@ -304,7 +416,8 @@ function renderHeader(_props: {
                 {dashboard.stats.plantCount}
               </p>
               <p className="text-sm text-muted-foreground">
-                {dashboard.stats.environments.casa} in casa, {dashboard.stats.environments.balcone} fuori
+                {dashboard.stats.environments.casa} in casa,{" "}
+                {dashboard.stats.environments.balcone} fuori
               </p>
             </div>
           </div>
@@ -359,7 +472,7 @@ function renderTaskAndWeather(_props: {
               <div className="flex items-center gap-2 text-primary">
                 <CheckCircle2 className="size-5" />
                 <span className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
-                  Priorità di oggi
+                  Priorita di oggi
                 </span>
               </div>
               <CardTitle className="mt-2">Checklist condivisa</CardTitle>
@@ -433,7 +546,8 @@ function renderTaskAndWeather(_props: {
 
                           <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(12rem,0.6fr)]">
                             <div className="rounded-[1.15rem] bg-secondary/40 px-3 py-3 text-sm leading-6 text-foreground/90">
-                              <span className="font-medium">Suggerimento:</span> {task.recommendation}
+                              <span className="font-medium">Suggerimento:</span>{" "}
+                              {task.recommendation}
                             </div>
                             <div className="rounded-[1.15rem] bg-secondary/40 px-3 py-3 text-sm leading-6 text-muted-foreground">
                               {task.reason}
@@ -449,7 +563,8 @@ function renderTaskAndWeather(_props: {
                             </span>
                             {task.completedAt ? (
                               <span>
-                                fatto da {task.completedBy} il {formatDateTime(task.completedAt)}
+                                fatto da {task.completedBy} il{" "}
+                                {formatDateTime(task.completedAt)}
                               </span>
                             ) : null}
                           </div>
@@ -574,12 +689,12 @@ function renderTaskAndWeather(_props: {
 }
 
 function renderPlantSections(_props: {
-  dashboard: DashboardState;
   activeTab: "tutte" | EnvironmentKey;
   setActiveTab: (value: "tutte" | EnvironmentKey) => void;
   plants: DashboardState["plants"];
+  openMeasurementsDialog: (plant: DashboardPlant) => void;
 }) {
-  const { activeTab, setActiveTab, plants } = _props;
+  const { activeTab, setActiveTab, plants, openMeasurementsDialog } = _props;
 
   return (
     <Card className="rounded-[2rem]">
@@ -594,8 +709,8 @@ function renderPlantSections(_props: {
             </div>
             <CardTitle className="mt-2">Casa e balcone, con scheda informativa</CardTitle>
             <CardDescription>
-              Ogni scheda combina routine, segnali da controllare, ultima azione registrata e
-              fonte online.
+              Ogni scheda combina routine, segnali da controllare, ultima azione
+              registrata e misure utili per affinare l&apos;acqua.
             </CardDescription>
           </div>
           <div className="rounded-full border border-border/70 bg-secondary/40 px-4 py-2 text-sm text-muted-foreground">
@@ -617,111 +732,170 @@ function renderPlantSections(_props: {
 
           <TabsContent value={activeTab} className="mt-5">
             <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-              {plants.map((plant) => (
-                <Card key={plant.id} className="overflow-hidden rounded-[1.8rem] border-border/70">
-                  <CardContent className="px-0 py-0">
-                    <div className="relative overflow-hidden rounded-t-[1.8rem] bg-[linear-gradient(180deg,rgba(227,241,222,0.9),rgba(245,250,242,0.75))] px-5 pt-5">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="outline">{plant.environmentLabel}</Badge>
-                            <Badge variant="subtle">{plant.quantity} unità</Badge>
-                            {plant.potType === "acquacoltura" ? (
-                              <Badge variant="warning">Acquacoltura</Badge>
-                            ) : null}
+              {plants.map((plant) => {
+                const hasMeasurements = hasMeasurementsSaved(plant);
+
+                return (
+                  <Card
+                    key={plant.id}
+                    className="overflow-hidden rounded-[1.8rem] border-border/70"
+                  >
+                    <CardContent className="px-0 py-0">
+                      <div className="relative overflow-hidden rounded-t-[1.8rem] bg-[linear-gradient(180deg,rgba(227,241,222,0.9),rgba(245,250,242,0.75))] px-5 pt-5">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge variant="outline">{plant.environmentLabel}</Badge>
+                              <Badge variant="subtle">{plant.quantity} unita</Badge>
+                              {plant.potType === "acquacoltura" ? (
+                                <Badge variant="warning">Acquacoltura</Badge>
+                              ) : null}
+                              <Badge variant={hasMeasurements ? "success" : "warning"}>
+                                {hasMeasurements ? "Misure salvate" : "Misure mancanti"}
+                              </Badge>
+                            </div>
+                            <h3 className="mt-3 text-2xl font-semibold tracking-[-0.04em]">
+                              {plant.displayName}
+                            </h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {plant.profile.scientificName}
+                            </p>
                           </div>
-                          <h3 className="mt-3 text-2xl font-semibold tracking-[-0.04em]">
-                            {plant.displayName}
-                          </h3>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            {plant.profile.scientificName}
+                        </div>
+
+                        <PlantIllustration
+                          speciesKey={plant.speciesKey}
+                          tone={plant.profile.illustrationTone}
+                          className="mx-auto mt-2 max-w-[15rem]"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-4 px-5 py-5">
+                        <div className="grid gap-3 text-sm leading-6 text-muted-foreground">
+                          <InfoLine
+                            label="Luce"
+                            value={plant.profile.sunlight}
+                            icon={<Leaf className="size-4 text-primary" />}
+                          />
+                          <InfoLine
+                            label="Acqua"
+                            value={plant.profile.watering}
+                            icon={<Droplets className="size-4 text-primary" />}
+                          />
+                          <InfoLine
+                            label="Nutrimento"
+                            value={plant.profile.feeding}
+                            icon={<Sprout className="size-4 text-primary" />}
+                          />
+                        </div>
+
+                        <Separator />
+
+                        <div className="flex flex-wrap gap-2">
+                          {plant.profile.needs.map((item) => (
+                            <Badge key={`${plant.id}-${item}`} variant="subtle">
+                              {item}
+                            </Badge>
+                          ))}
+                        </div>
+
+                        <div className="rounded-[1.3rem] border border-border/70 bg-secondary/20 px-4 py-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <div className="flex items-center gap-2 text-primary">
+                                <Ruler className="size-4" />
+                                <p className="text-sm font-medium text-foreground">
+                                  Misure e calibrazione acqua
+                                </p>
+                              </div>
+                              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                {hasMeasurements
+                                  ? "Le dosi proposte usano queste misure per essere piu vicine al vaso reale."
+                                  : "Aggiungi altezza, larghezza e diametro vaso per rendere piu affidabili le quantita di acqua."}
+                              </p>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openMeasurementsDialog(plant)}
+                            >
+                              {hasMeasurements ? "Aggiorna misure" : "Inserisci misure"}
+                            </Button>
+                          </div>
+
+                          <div className="mt-4 grid gap-2 rounded-[1.15rem] bg-background/70 px-3 py-3 text-sm text-muted-foreground sm:grid-cols-3">
+                            <MeasurementLine
+                              label="Altezza"
+                              value={formatMeasurement(plant.heightCm)}
+                            />
+                            <MeasurementLine
+                              label="Larghezza"
+                              value={formatMeasurement(plant.spreadCm)}
+                            />
+                            <MeasurementLine
+                              label="Diametro vaso"
+                              value={formatMeasurement(plant.potDiameterCm)}
+                            />
+                          </div>
+
+                          {plant.lastMeasuredAt ? (
+                            <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                              Ultimo aggiornamento misure {formatDate(plant.lastMeasuredAt)}
+                            </p>
+                          ) : null}
+                        </div>
+
+                        <div className="grid gap-2 rounded-[1.3rem] bg-secondary/35 px-4 py-4 text-sm">
+                          <p>
+                            <span className="font-medium text-foreground">Ultima acqua:</span>{" "}
+                            {plant.lastWateredAt ? formatDate(plant.lastWateredAt) : "nessun dato"}
                           </p>
+                          <p>
+                            <span className="font-medium text-foreground">Ultimo concime:</span>{" "}
+                            {plant.lastFedAt ? formatDate(plant.lastFedAt) : "nessun dato"}
+                          </p>
+                          {plant.potType === "acquacoltura" ? (
+                            <p>
+                              <span className="font-medium text-foreground">
+                                Ultimo cambio acqua:
+                              </span>{" "}
+                              {plant.lastWaterChangedAt
+                                ? formatDate(plant.lastWaterChangedAt)
+                                : "nessun dato"}
+                            </p>
+                          ) : null}
+                          {plant.exposure ? (
+                            <p>
+                              <span className="font-medium text-foreground">Esposizione:</span>{" "}
+                              {plant.exposure}
+                            </p>
+                          ) : null}
+                          {plant.notes ? (
+                            <p>
+                              <span className="font-medium text-foreground">Note:</span>{" "}
+                              {plant.notes}
+                            </p>
+                          ) : null}
+                        </div>
+
+                        <div className="flex flex-wrap gap-3 text-sm">
+                          <a
+                            href={plant.profile.source.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-primary underline-offset-4 transition hover:underline"
+                          >
+                            Fonte: {plant.profile.source.label}
+                          </a>
+                          <span className="text-muted-foreground">
+                            {plant.profile.watchouts.join(", ")}
+                          </span>
                         </div>
                       </div>
-
-                      <PlantIllustration
-                        speciesKey={plant.speciesKey}
-                        tone={plant.profile.illustrationTone}
-                        className="mx-auto mt-2 max-w-[15rem]"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-4 px-5 py-5">
-                      <div className="grid gap-3 text-sm leading-6 text-muted-foreground">
-                        <InfoLine
-                          label="Luce"
-                          value={plant.profile.sunlight}
-                          icon={<Leaf className="size-4 text-primary" />}
-                        />
-                        <InfoLine
-                          label="Acqua"
-                          value={plant.profile.watering}
-                          icon={<Droplets className="size-4 text-primary" />}
-                        />
-                        <InfoLine
-                          label="Nutrimento"
-                          value={plant.profile.feeding}
-                          icon={<Sprout className="size-4 text-primary" />}
-                        />
-                      </div>
-
-                      <Separator />
-
-                      <div className="flex flex-wrap gap-2">
-                        {plant.profile.needs.map((item) => (
-                          <Badge key={`${plant.id}-${item}`} variant="subtle">
-                            {item}
-                          </Badge>
-                        ))}
-                      </div>
-
-                      <div className="grid gap-2 rounded-[1.3rem] bg-secondary/35 px-4 py-4 text-sm">
-                        <p>
-                          <span className="font-medium text-foreground">Ultima acqua:</span>{" "}
-                          {plant.lastWateredAt ? formatDate(plant.lastWateredAt) : "nessun dato"}
-                        </p>
-                        <p>
-                          <span className="font-medium text-foreground">Ultimo concime:</span>{" "}
-                          {plant.lastFedAt ? formatDate(plant.lastFedAt) : "nessun dato"}
-                        </p>
-                        {plant.potType === "acquacoltura" ? (
-                          <p>
-                            <span className="font-medium text-foreground">Ultimo cambio acqua:</span>{" "}
-                            {plant.lastWaterChangedAt
-                              ? formatDate(plant.lastWaterChangedAt)
-                              : "nessun dato"}
-                          </p>
-                        ) : null}
-                        {plant.exposure ? (
-                          <p>
-                            <span className="font-medium text-foreground">Esposizione:</span>{" "}
-                            {plant.exposure}
-                          </p>
-                        ) : null}
-                        {plant.notes ? (
-                          <p>
-                            <span className="font-medium text-foreground">Note:</span> {plant.notes}
-                          </p>
-                        ) : null}
-                      </div>
-
-                      <div className="flex flex-wrap gap-3 text-sm">
-                        <a
-                          href={plant.profile.source.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-primary underline-offset-4 transition hover:underline"
-                        >
-                          Fonte: {plant.profile.source.label}
-                        </a>
-                        <span className="text-muted-foreground">
-                          {plant.profile.watchouts.join(" • ")}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </TabsContent>
         </Tabs>
@@ -771,7 +945,8 @@ function renderPlantDialog(_props: {
         <DialogHeader>
           <DialogTitle>Aggiungi una nuova pianta</DialogTitle>
           <DialogDescription>
-            Salva specie, ambiente e note essenziali: la dashboard la renderà subito persistente.
+            Salva specie, ambiente e misure utili: la dashboard le terra in memoria e
+            usera questi dati anche per affinare le dosi d&apos;acqua.
           </DialogDescription>
         </DialogHeader>
 
@@ -816,7 +991,7 @@ function renderPlantDialog(_props: {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="quantity">Quantità</Label>
+              <Label htmlFor="quantity">Quantita</Label>
               <Input
                 id="quantity"
                 type="number"
@@ -896,6 +1071,54 @@ function renderPlantDialog(_props: {
             />
           </div>
 
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-2">
+              <Label htmlFor="height">Altezza (cm)</Label>
+              <Input
+                id="height"
+                type="number"
+                min={1}
+                max={999}
+                value={form.heightCm}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, heightCm: event.target.value }))
+                }
+                placeholder="Es. 35"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="spread">Larghezza (cm)</Label>
+              <Input
+                id="spread"
+                type="number"
+                min={1}
+                max={999}
+                value={form.spreadCm}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, spreadCm: event.target.value }))
+                }
+                placeholder="Es. 28"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="pot-diameter">Diametro vaso (cm)</Label>
+              <Input
+                id="pot-diameter"
+                type="number"
+                min={1}
+                max={999}
+                value={form.potDiameterCm}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    potDiameterCm: event.target.value,
+                  }))
+                }
+                placeholder="Es. 18"
+              />
+            </div>
+          </div>
+
           <div className="grid gap-2">
             <Label htmlFor="notes">Note utili</Label>
             <Textarea
@@ -923,6 +1146,156 @@ function renderPlantDialog(_props: {
   );
 }
 
+function renderMeasurementsDialog(_props: {
+  isOpen: boolean;
+  onOpenChange: (value: boolean) => void;
+  measurementsForm: PlantMeasurementsState | null;
+  setMeasurementsForm: Dispatch<SetStateAction<PlantMeasurementsState | null>>;
+  handleSaveMeasurements: () => void;
+  isPending: boolean;
+}) {
+  const {
+    isOpen,
+    onOpenChange,
+    measurementsForm,
+    setMeasurementsForm,
+    handleSaveMeasurements,
+    isPending,
+  } = _props;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Aggiorna misure e dettagli</DialogTitle>
+          <DialogDescription>
+            Le misure restano in memoria e aiutano la dashboard a suggerire dosi di
+            acqua piu vicine alla realta.
+          </DialogDescription>
+        </DialogHeader>
+
+        {measurementsForm ? (
+          <div className="grid gap-4">
+            <div className="rounded-[1.2rem] border border-border/70 bg-secondary/35 px-4 py-3 text-sm text-muted-foreground">
+              Scheda:{" "}
+              <span className="font-medium text-foreground">
+                {measurementsForm.plantName}
+              </span>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-name">Nome scheda</Label>
+                <Input
+                  id="edit-name"
+                  value={measurementsForm.customName}
+                  onChange={(event) =>
+                    setMeasurementsForm((current) =>
+                      current ? { ...current, customName: event.target.value } : current,
+                    )
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-exposure">Esposizione</Label>
+                <Input
+                  id="edit-exposure"
+                  value={measurementsForm.exposure}
+                  onChange={(event) =>
+                    setMeasurementsForm((current) =>
+                      current ? { ...current, exposure: event.target.value } : current,
+                    )
+                  }
+                  placeholder="Es. sud-est, finestra luminosa"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-height">Altezza (cm)</Label>
+                <Input
+                  id="edit-height"
+                  type="number"
+                  min={1}
+                  max={999}
+                  value={measurementsForm.heightCm}
+                  onChange={(event) =>
+                    setMeasurementsForm((current) =>
+                      current ? { ...current, heightCm: event.target.value } : current,
+                    )
+                  }
+                  placeholder="Es. 35"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-spread">Larghezza (cm)</Label>
+                <Input
+                  id="edit-spread"
+                  type="number"
+                  min={1}
+                  max={999}
+                  value={measurementsForm.spreadCm}
+                  onChange={(event) =>
+                    setMeasurementsForm((current) =>
+                      current ? { ...current, spreadCm: event.target.value } : current,
+                    )
+                  }
+                  placeholder="Es. 28"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-pot-diameter">Diametro vaso (cm)</Label>
+                <Input
+                  id="edit-pot-diameter"
+                  type="number"
+                  min={1}
+                  max={999}
+                  value={measurementsForm.potDiameterCm}
+                  onChange={(event) =>
+                    setMeasurementsForm((current) =>
+                      current
+                        ? { ...current, potDiameterCm: event.target.value }
+                        : current,
+                    )
+                  }
+                  placeholder="Es. 18"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="edit-notes">Note</Label>
+              <Textarea
+                id="edit-notes"
+                value={measurementsForm.notes}
+                onChange={(event) =>
+                  setMeasurementsForm((current) =>
+                    current ? { ...current, notes: event.target.value } : current,
+                  )
+                }
+                placeholder="Osservazioni utili per irrigazione, crescita o posizione"
+              />
+            </div>
+          </div>
+        ) : null}
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Chiudi
+          </Button>
+          <Button
+            onClick={handleSaveMeasurements}
+            disabled={isPending || !measurementsForm}
+          >
+            Salva dettagli
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function InfoLine({
   label,
   value,
@@ -941,6 +1314,23 @@ function InfoLine({
       </div>
     </div>
   );
+}
+
+function MeasurementLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[1rem] bg-secondary/30 px-3 py-2">
+      <p className="text-xs uppercase tracking-[0.18em]">{label}</p>
+      <p className="mt-1 font-medium text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function hasMeasurementsSaved(plant: DashboardPlant) {
+  return Boolean(plant.heightCm || plant.spreadCm || plant.potDiameterCm);
+}
+
+function formatMeasurement(value?: number) {
+  return value ? `${value} cm` : "da inserire";
 }
 
 function getInitials(name: string) {

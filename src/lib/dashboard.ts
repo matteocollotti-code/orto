@@ -57,8 +57,8 @@ export async function buildDashboardState(): Promise<DashboardState> {
     },
     assumptions: [
       "Gli ultimi interventi iniziali sono stati precompilati in modo prudenziale per evitare una dashboard vuota al primo avvio.",
-      "Le dosi d'acqua sono indicative per vasi domestici; regolale in base a diametro vaso, drenaggio e stato reale del terriccio.",
-      "Per i pothos in acquacoltura il cambio acqua settimanale è una regola operativa della dashboard, adattata all'uso domestico.",
+      "Le dosi d'acqua sono indicative per vasi domestici e ora vengono corrette anche con altezza, larghezza e diametro vaso quando presenti.",
+      "Per i pothos in acquacoltura il cambio acqua settimanale e una regola operativa della dashboard, adattata all'uso domestico.",
     ],
   };
 }
@@ -186,7 +186,7 @@ function buildRecommendation(
 ) {
   if (rule.type === "water" && plant.environment === "balcone") {
     return weather.irrigationBias === "high"
-      ? "Oggi mantieni il vaso più reattivo del solito: controlla subito il substrato e irriga nella fascia fresca."
+      ? "Oggi il vaso va controllato subito: con clima asciutto conviene irrigare nella fascia fresca."
       : "Controlla il terriccio e irriga solo quanto basta a riportarlo umido, senza saturarlo.";
   }
 
@@ -195,16 +195,20 @@ function buildRecommendation(
   }
 
   if (rule.type === "fertilize") {
-    return "Usa una dose leggera, preferibilmente su substrato già leggermente umido.";
+    return "Usa una dose leggera, preferibilmente su substrato gia leggermente umido.";
   }
 
   if (rule.type === "harvest") {
     return "Raccogli dalle cime per favorire nuova vegetazione e ritardare la fioritura.";
   }
 
+  if (rule.type === "water" && !hasPlantMeasurements(plant)) {
+    return "Procedi con cautela e aggiungi altezza, larghezza e diametro vaso per dosi d'acqua piu precise.";
+  }
+
   return plant.environment === "casa"
     ? "Procedi solo se il substrato conferma il bisogno reale della pianta."
-    : "Meglio intervenire al mattino o nel tardo pomeriggio, evitando le ore più calde.";
+    : "Meglio intervenire al mattino o nel tardo pomeriggio, evitando le ore piu calde.";
 }
 
 function buildReason(
@@ -224,7 +228,7 @@ function buildReason(
   }
 
   if (rule.type === "change-water") {
-    return "La coltura in acqua tende a perdere qualità se il contenitore resta fermo per troppi giorni.";
+    return "La coltura in acqua tende a perdere qualita se il contenitore resta fermo per troppi giorni.";
   }
 
   return "Promemoria periodico derivato dal profilo della specie e dalla stagione attuale.";
@@ -242,6 +246,7 @@ function buildAmount(plant: Plant, rule: PlantTaskRule, weather: WeatherSnapshot
   }
 
   let [min, max] = rule.baseAmountMl;
+  const measurementFactor = getMeasurementFactor(plant);
 
   if (rule.weatherSensitive && plant.environment === "balcone") {
     if (weather.irrigationBias === "high") {
@@ -253,11 +258,14 @@ function buildAmount(plant: Plant, rule: PlantTaskRule, weather: WeatherSnapshot
     }
   }
 
+  min = roundWaterAmount(min * measurementFactor);
+  max = roundWaterAmount(max * measurementFactor);
+
   if (plant.quantity > 1) {
     const totalMin = min * plant.quantity;
     const totalMax = max * plant.quantity;
 
-    return `${min}-${max} ml per unità (${formatLiters(totalMin)}-${formatLiters(totalMax)} totali).`;
+    return `${min}-${max} ml per unita (${formatLiters(totalMin)}-${formatLiters(totalMax)} totali).`;
   }
 
   return `${min}-${max} ml circa.`;
@@ -306,4 +314,53 @@ function formatLiters(value: number) {
   }
 
   return `${value} ml`;
+}
+
+function hasPlantMeasurements(plant: Plant) {
+  return Boolean(plant.heightCm || plant.spreadCm || plant.potDiameterCm);
+}
+
+function getMeasurementFactor(plant: Plant) {
+  const weightedFactors: Array<{ factor: number; weight: number }> = [];
+
+  if (plant.potDiameterCm) {
+    weightedFactors.push({
+      factor: clamp(plant.potDiameterCm / 18, 0.8, 1.75),
+      weight: 1.6,
+    });
+  }
+
+  if (plant.heightCm) {
+    weightedFactors.push({
+      factor: clamp(plant.heightCm / 35, 0.85, 1.45),
+      weight: 1,
+    });
+  }
+
+  if (plant.spreadCm) {
+    weightedFactors.push({
+      factor: clamp(plant.spreadCm / 30, 0.85, 1.5),
+      weight: 1,
+    });
+  }
+
+  if (!weightedFactors.length) {
+    return 1;
+  }
+
+  const totalWeight = weightedFactors.reduce((sum, entry) => sum + entry.weight, 0);
+  const weightedSum = weightedFactors.reduce(
+    (sum, entry) => sum + entry.factor * entry.weight,
+    0,
+  );
+
+  return clamp(weightedSum / totalWeight, 0.8, 1.8);
+}
+
+function roundWaterAmount(value: number) {
+  return Math.max(50, Math.round(value / 10) * 10);
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
 }
