@@ -4,6 +4,7 @@ import {
   getEnvironmentLabel,
   getPlantProfile,
 } from "@/lib/plant-profiles";
+import { buildSeasonalPlantingGuide } from "@/lib/planting-calendar";
 import { getStorageMeta, getStore } from "@/lib/store";
 import { getWeatherSnapshot } from "@/lib/weather";
 import type {
@@ -27,6 +28,7 @@ export async function buildDashboardState(): Promise<DashboardState> {
   const storage = getStorageMeta();
   const plants = mapPlants(store);
   const tasks = buildTasks(store, weather, today);
+  const plantingGuide = buildSeasonalPlantingGuide(today, weather);
   const tasksToday = tasks
     .filter((task) => diffInDays(task.dueDate, today) >= 0)
     .sort(sortTasks);
@@ -40,6 +42,7 @@ export async function buildDashboardState(): Promise<DashboardState> {
     storage,
     storeSnapshot: store,
     weather,
+    plantingGuide,
     plants,
     tasksToday,
     upcomingTasks,

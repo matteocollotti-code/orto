@@ -121,6 +121,27 @@ export type PlantSource = {
   url: string;
 };
 
+export type PlantingCalendarEntry = {
+  month: number;
+  monthLabel: string;
+  summary: string;
+  seeds: string[];
+  seedlings: string[];
+  caution: string;
+};
+
+export type SeasonalPlantingGuide = {
+  location: string;
+  scope: string;
+  currentPeriodLabel: string;
+  currentHeadline: string;
+  weatherNote: string;
+  current: PlantingCalendarEntry;
+  next: PlantingCalendarEntry;
+  calendar: PlantingCalendarEntry[];
+  sources: PlantSource[];
+};
+
 export type PlantTaskRule = {
   type: TaskType;
   intervalDays: number;
@@ -194,6 +215,7 @@ export type DashboardState = {
   };
   storeSnapshot: StoreState;
   weather: WeatherSnapshot;
+  plantingGuide: SeasonalPlantingGuide;
   plants: DashboardPlant[];
   tasksToday: DashboardTask[];
   upcomingTasks: DashboardTask[];

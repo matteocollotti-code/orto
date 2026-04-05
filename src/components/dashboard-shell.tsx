@@ -9,6 +9,7 @@ import {
 } from "react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import {
+  CalendarDays,
   CheckCircle2,
   CloudSun,
   Droplets,
@@ -63,6 +64,7 @@ import type {
   DashboardPlant,
   DashboardState,
   EnvironmentKey,
+  PlantingCalendarEntry,
   SpeciesKey,
   StoreState,
 } from "@/lib/orto-types";
@@ -346,6 +348,8 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
             pendingTaskId,
             handleToggleTask,
           })}
+
+          {renderPlantingGuide(dashboard)}
 
           {renderPlantSections({
             activeTab,
@@ -924,6 +928,166 @@ function renderPlantSections(_props: {
   );
 }
 
+function renderPlantingGuide(dashboard: DashboardState) {
+  const { plantingGuide } = dashboard;
+
+  return (
+    <Card className="rounded-[2rem]">
+      <CardHeader className="gap-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-primary">
+              <CalendarDays className="size-5" />
+              <span className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
+                Semine e trapianti
+              </span>
+            </div>
+            <CardTitle className="mt-2">
+              Cosa mettere a dimora durante l&apos;anno
+            </CardTitle>
+            <CardDescription>
+              Planner stagionale per {plantingGuide.location}, pensato per balcone,
+              cassette e orto domestico in vaso.
+            </CardDescription>
+          </div>
+          <div className="rounded-full border border-border/70 bg-secondary/40 px-4 py-2 text-sm text-muted-foreground">
+            {plantingGuide.scope}
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="pt-0">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_22rem]">
+          <div className="rounded-[1.7rem] border border-border/70 bg-[linear-gradient(135deg,rgba(228,241,219,0.88),rgba(247,251,244,0.8))] px-5 py-5">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="success">{plantingGuide.currentPeriodLabel}</Badge>
+              <Badge variant="outline">{plantingGuide.current.monthLabel}</Badge>
+            </div>
+
+            <h3 className="mt-4 text-2xl font-semibold tracking-[-0.04em]">
+              {plantingGuide.currentHeadline}
+            </h3>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">
+              {plantingGuide.current.summary}
+            </p>
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              <PlantingColumn
+                title="Semi consigliati adesso"
+                items={plantingGuide.current.seeds}
+                accent="from-primary/12 to-primary/4"
+              />
+              <PlantingColumn
+                title="Piantine da mettere a dimora"
+                items={plantingGuide.current.seedlings}
+                accent="from-secondary/70 to-secondary/40"
+              />
+            </div>
+
+            <div className="mt-5 rounded-[1.25rem] border border-border/70 bg-background/70 px-4 py-4 text-sm leading-6 text-muted-foreground">
+              <span className="font-medium text-foreground">Nota pratica:</span>{" "}
+              {plantingGuide.weatherNote}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <div className="rounded-[1.6rem] border border-border/70 bg-secondary/30 px-4 py-4">
+              <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
+                Prossimo passaggio
+              </p>
+              <h3 className="mt-2 text-xl font-semibold tracking-[-0.04em]">
+                {plantingGuide.next.monthLabel}
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                {plantingGuide.next.summary}
+              </p>
+              <div className="mt-4 flex flex-col gap-3 text-sm">
+                <div>
+                  <p className="font-medium text-foreground">Semi</p>
+                  <p className="mt-1 text-muted-foreground">
+                    {plantingGuide.next.seeds.slice(0, 2).join(", ")}.
+                  </p>
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Piantine</p>
+                  <p className="mt-1 text-muted-foreground">
+                    {plantingGuide.next.seedlings.slice(0, 2).join(", ")}.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-[1.6rem] border border-border/70 bg-background/70 px-4 py-4">
+              <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
+                Fonti guida
+              </p>
+              <div className="mt-3 flex flex-col gap-2 text-sm">
+                {plantingGuide.sources.map((source) => (
+                  <a
+                    key={source.url}
+                    href={source.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary underline-offset-4 transition hover:underline"
+                  >
+                    {source.label}
+                  </a>
+                ))}
+              </div>
+              <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                Finestre stagionali adattate a Milano e alla coltivazione in vaso,
+                inferite dalle finestre di semina e trapianto delle fonti usate.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+          {plantingGuide.calendar.map((entry) => {
+            const isCurrent = entry.month === plantingGuide.current.month;
+
+            return (
+              <div
+                key={entry.month}
+                className={`rounded-[1.5rem] border px-4 py-4 ${
+                  isCurrent
+                    ? "border-primary/35 bg-primary/8"
+                    : "border-border/70 bg-secondary/20"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-lg font-semibold tracking-[-0.03em]">
+                    {entry.monthLabel}
+                  </p>
+                  {isCurrent ? <Badge variant="success">Adesso</Badge> : null}
+                </div>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  {entry.summary}
+                </p>
+
+                <div className="mt-4 grid gap-3">
+                  <MiniPlantingBlock
+                    label="Semi"
+                    items={entry.seeds}
+                  />
+                  <MiniPlantingBlock
+                    label="Piantine"
+                    items={entry.seedlings}
+                  />
+                </div>
+
+                <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                  {entry.caution}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function renderAssumptions(_dashboard: DashboardState) {
   return (
     <Card className="rounded-[2rem]">
@@ -1343,6 +1507,57 @@ function MeasurementLine({ label, value }: { label: string; value: string }) {
     <div className="rounded-[1rem] bg-secondary/30 px-3 py-2">
       <p className="text-xs uppercase tracking-[0.18em]">{label}</p>
       <p className="mt-1 font-medium text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function PlantingColumn({
+  title,
+  items,
+  accent,
+}: {
+  title: string;
+  items: string[];
+  accent: string;
+}) {
+  return (
+    <div
+      className={`rounded-[1.3rem] border border-border/70 bg-gradient-to-br ${accent} px-4 py-4`}
+    >
+      <p className="text-sm font-medium text-foreground">{title}</p>
+      <div className="mt-3 flex flex-col gap-2">
+        {items.map((item) => (
+          <div
+            key={`${title}-${item}`}
+            className="rounded-[1rem] bg-background/80 px-3 py-2 text-sm leading-6 text-muted-foreground"
+          >
+            {item}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MiniPlantingBlock({
+  label,
+  items,
+}: {
+  label: string;
+  items: PlantingCalendarEntry["seeds"];
+}) {
+  return (
+    <div className="rounded-[1rem] bg-background/75 px-3 py-3">
+      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+        {label}
+      </p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {items.map((item) => (
+          <Badge key={`${label}-${item}`} variant="subtle">
+            {item}
+          </Badge>
+        ))}
+      </div>
     </div>
   );
 }
