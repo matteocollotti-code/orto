@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# oRTO
 
-## Getting Started
+Webapp Next.js 16 pronta per Vercel, con una prima interfaccia responsive per gestire colture, sensori, automazioni e stato del deploy.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Next.js App Router
+- React 19
+- Tailwind CSS 4
+- Vercel Analytics
+- Vercel Speed Insights
+
+## Avvio locale
+
+In PowerShell su Windows conviene usare `npm.cmd`:
+
+```powershell
+npm.cmd install
+npm.cmd run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+App disponibile su [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy su Vercel
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Pubblica il repository su GitHub, GitLab o Bitbucket.
+2. Importa il repository da [Vercel](https://vercel.com/new).
+3. Vercel riconoscera automaticamente Next.js e usera la configurazione giusta.
+4. Se aggiungerai API key o database, inserisci le variabili ambiente nel dashboard Vercel.
 
-## Learn More
+## File principali
 
-To learn more about Next.js, take a look at the following resources:
+- `src/app/page.tsx`: homepage della webapp
+- `src/app/layout.tsx`: metadata e integrazione Vercel
+- `src/app/globals.css`: tema, layout e animazioni
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Passi utili dopo questa base
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- collegare un database come Supabase, Neon o PlanetScale
+- aggiungere autenticazione
+- creare API route o Server Actions
+- collegare un dominio custom da Vercel
