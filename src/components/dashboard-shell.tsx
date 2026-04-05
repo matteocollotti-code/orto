@@ -510,10 +510,10 @@ function renderTaskAndWeather(_props: {
                   return (
                     <label
                       key={task.id}
-                      className={`group flex cursor-pointer flex-col gap-3 rounded-[1.5rem] border px-4 py-4 transition ${
+                      className={`group flex cursor-pointer flex-col rounded-[1.5rem] border px-4 transition ${
                         task.isDone
-                          ? "border-primary/20 bg-primary/10"
-                          : "border-border/70 bg-background/70 hover:border-primary/35 hover:bg-primary/5"
+                          ? "border-primary/20 bg-primary/10 py-3"
+                          : "gap-3 border-border/70 bg-background/70 py-4 hover:border-primary/35 hover:bg-primary/5"
                       }`}
                     >
                       <div className="flex items-start gap-3">
@@ -532,56 +532,58 @@ function renderTaskAndWeather(_props: {
                         />
 
                         <div className="min-w-0 flex-1">
-                          <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
-                            <div className="min-w-0">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <p
-                                  className={`text-base font-semibold tracking-[-0.03em] ${
-                                    task.isDone ? "text-foreground/60 line-through" : ""
-                                  }`}
-                                >
-                                  {task.title}
-                                </p>
-                                <Badge
-                                  variant={task.isDone ? "success" : priorityVariant(task.priority)}
-                                >
-                                  {task.isDone ? "Fatto" : priorityLabel(task.priority)}
-                                </Badge>
-                                <Badge variant="subtle">
-                                  {task.environment === "balcone" ? "Balcone" : "Casa"}
-                                </Badge>
+                          {task.isDone ? (
+                            <p className="text-base font-semibold tracking-[-0.03em] text-foreground/60 line-through">
+                              {task.title}
+                            </p>
+                          ) : (
+                            <>
+                              <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p className="text-base font-semibold tracking-[-0.03em]">
+                                      {task.title}
+                                    </p>
+                                    <Badge variant={priorityVariant(task.priority)}>
+                                      {priorityLabel(task.priority)}
+                                    </Badge>
+                                    <Badge variant="subtle">
+                                      {task.environment === "balcone" ? "Balcone" : "Casa"}
+                                    </Badge>
+                                  </div>
+                                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                                    {task.description}
+                                  </p>
+                                </div>
+
+                                <div className="rounded-full border border-border/70 bg-secondary/50 px-3 py-1.5 text-xs font-medium text-foreground">
+                                  {task.amount}
+                                </div>
                               </div>
-                              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                                {task.description}
-                              </p>
-                            </div>
 
-                            <div className="rounded-full border border-border/70 bg-secondary/50 px-3 py-1.5 text-xs font-medium text-foreground">
-                              {task.amount}
-                            </div>
-                          </div>
+                              <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(12rem,0.6fr)]">
+                                <div className="rounded-[1.15rem] bg-secondary/40 px-3 py-3 text-sm leading-6 text-foreground/90">
+                                  <span className="font-medium">Suggerimento:</span>{" "}
+                                  {task.recommendation}
+                                </div>
+                                <div className="rounded-[1.15rem] bg-secondary/40 px-3 py-3 text-sm leading-6 text-muted-foreground">
+                                  {task.reason}
+                                </div>
+                              </div>
 
-                          <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(12rem,0.6fr)]">
-                            <div className="rounded-[1.15rem] bg-secondary/40 px-3 py-3 text-sm leading-6 text-foreground/90">
-                              <span className="font-medium">Suggerimento:</span>{" "}
-                              {task.recommendation}
-                            </div>
-                            <div className="rounded-[1.15rem] bg-secondary/40 px-3 py-3 text-sm leading-6 text-muted-foreground">
-                              {task.reason}
-                            </div>
-                          </div>
-
-                          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                            <span>{task.plantName}</span>
-                            <span>
-                              {task.dueDate === dashboard.today
-                                ? "Oggi"
-                                : `Da ${formatDate(task.dueDate)}`}
-                            </span>
-                            {task.completedAt ? (
-                              <span>completato il {formatDateTime(task.completedAt)}</span>
-                            ) : null}
-                          </div>
+                              <div className="mt-3 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                                <span>{task.plantName}</span>
+                                <span>
+                                  {task.dueDate === dashboard.today
+                                    ? "Oggi"
+                                    : `Da ${formatDate(task.dueDate)}`}
+                                </span>
+                                {task.completedAt ? (
+                                  <span>completato il {formatDateTime(task.completedAt)}</span>
+                                ) : null}
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
                     </label>
