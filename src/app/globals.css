@@ -1,25 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #eef2ea;
-  --foreground: #17301f;
-  --card: rgba(252, 253, 249, 0.88);
-  --card-foreground: #17301f;
-  --popover: rgba(252, 253, 249, 0.96);
-  --popover-foreground: #17301f;
-  --primary: #2f6f40;
-  --primary-foreground: #f7f9f4;
-  --secondary: #dfe9d8;
-  --secondary-foreground: #24412b;
-  --muted: #edf2e8;
-  --muted-foreground: #5f7463;
-  --accent: #d4e3cd;
-  --accent-foreground: #21452c;
-  --border: rgba(27, 55, 35, 0.12);
-  --input: rgba(27, 55, 35, 0.14);
-  --ring: rgba(47, 111, 64, 0.4);
-  --destructive: #b84035;
-  --destructive-foreground: #fff9f8;
+  --background: #0f1814;
+  --foreground: #e5efe4;
+  --card: rgba(20, 33, 27, 0.9);
+  --card-foreground: #e5efe4;
+  --popover: rgba(18, 30, 24, 0.96);
+  --popover-foreground: #edf5ec;
+  --primary: #5ba06d;
+  --primary-foreground: #07110b;
+  --secondary: #192a22;
+  --secondary-foreground: #d9e9d8;
+  --muted: #14231c;
+  --muted-foreground: #93aa99;
+  --accent: #1d3528;
+  --accent-foreground: #e1eddf;
+  --border: rgba(132, 176, 144, 0.18);
+  --input: rgba(132, 176, 144, 0.18);
+  --ring: rgba(91, 160, 109, 0.42);
+  --destructive: #b85f54;
+  --destructive-foreground: #fff5f3;
   --radius: 1.2rem;
 }
 
@@ -62,8 +62,9 @@ html {
 body {
   min-height: 100vh;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0))
+    radial-gradient(circle at top, rgba(72, 128, 88, 0.18), rgba(72, 128, 88, 0) 34%)
       fixed,
+    linear-gradient(180deg, rgba(9, 17, 13, 0), rgba(9, 17, 13, 0.42)) fixed,
     var(--background);
   color: var(--foreground);
   font-family: var(--font-space-grotesk), sans-serif;
@@ -75,23 +76,23 @@ a {
 }
 
 ::selection {
-  background: rgba(47, 111, 64, 0.16);
+  background: rgba(91, 160, 109, 0.24);
 }
 
 .glass-panel {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.22)),
+    linear-gradient(180deg, rgba(69, 104, 77, 0.18), rgba(16, 26, 21, 0.12)),
     var(--card);
   box-shadow:
-    0 20px 60px rgba(26, 56, 35, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.42);
+    0 28px 70px rgba(4, 10, 7, 0.38),
+    inset 0 1px 0 rgba(203, 232, 205, 0.05);
   backdrop-filter: blur(24px);
 }
 
 .orchard-mesh {
   background-image:
-    linear-gradient(rgba(23, 48, 31, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(23, 48, 31, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(184, 219, 190, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184, 219, 190, 0.04) 1px, transparent 1px);
   background-size: 4.5rem 4.5rem;
   mask-image: radial-gradient(circle at center, black 55%, transparent 92%);
 }

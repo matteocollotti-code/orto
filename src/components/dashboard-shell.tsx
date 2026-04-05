@@ -332,8 +332,8 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
     <div className="min-h-screen bg-background text-foreground">
       <div className="relative isolate overflow-hidden">
         <div className="pointer-events-none absolute inset-0 orchard-mesh opacity-80" />
-        <div className="pointer-events-none absolute left-[-12rem] top-[-12rem] size-[26rem] rounded-full bg-[radial-gradient(circle,_rgba(133,192,120,0.28)_0%,_rgba(133,192,120,0)_70%)] blur-3xl" />
-        <div className="pointer-events-none absolute bottom-[-12rem] right-[-8rem] size-[28rem] rounded-full bg-[radial-gradient(circle,_rgba(206,228,182,0.42)_0%,_rgba(206,228,182,0)_70%)] blur-3xl" />
+        <div className="pointer-events-none absolute left-[-12rem] top-[-12rem] size-[26rem] rounded-full bg-[radial-gradient(circle,_rgba(74,132,89,0.34)_0%,_rgba(74,132,89,0)_70%)] blur-3xl" />
+        <div className="pointer-events-none absolute bottom-[-12rem] right-[-8rem] size-[28rem] rounded-full bg-[radial-gradient(circle,_rgba(44,92,58,0.42)_0%,_rgba(44,92,58,0)_70%)] blur-3xl" />
 
         <div className="mx-auto flex min-h-screen w-full max-w-[1480px] flex-col gap-6 px-4 py-4 sm:px-6 lg:px-8 lg:py-8">
           {renderHeader({
@@ -471,7 +471,7 @@ function renderHeader(_props: {
         <Badge variant="outline">Casa {tasksByEnvironment.casa}</Badge>
       </div>
       {notice ? (
-        <div className="rounded-[1.35rem] border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-900">
+        <div className="rounded-[1.35rem] border border-red-400/25 bg-red-500/12 px-4 py-3 text-sm text-red-100">
           {notice}
         </div>
       ) : null}
@@ -770,7 +770,7 @@ function renderPlantSections(_props: {
                     className="overflow-hidden rounded-[1.8rem] border-border/70"
                   >
                     <CardContent className="px-0 py-0">
-                      <div className="relative overflow-hidden rounded-t-[1.8rem] bg-[linear-gradient(180deg,rgba(227,241,222,0.9),rgba(245,250,242,0.75))] px-5 pt-5">
+                      <div className="relative overflow-hidden rounded-t-[1.8rem] bg-[linear-gradient(180deg,rgba(32,56,42,0.92),rgba(18,31,24,0.88))] px-5 pt-5">
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <div className="flex flex-wrap items-center gap-2">
@@ -996,7 +996,7 @@ function renderPlantingGuide(dashboard: DashboardState) {
 
       <CardContent className="pt-0">
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_22rem]">
-          <div className="rounded-[1.7rem] border border-border/70 bg-[linear-gradient(135deg,rgba(228,241,219,0.88),rgba(247,251,244,0.8))] px-5 py-5">
+          <div className="rounded-[1.7rem] border border-border/70 bg-[linear-gradient(135deg,rgba(32,58,44,0.92),rgba(17,30,23,0.88))] px-5 py-5">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="success">{plantingGuide.currentPeriodLabel}</Badge>
               <Badge variant="outline">{plantingGuide.current.monthLabel}</Badge>
