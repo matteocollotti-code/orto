@@ -17,6 +17,8 @@ export type SpeciesKey =
   | "salvia"
   | "rosmarino"
   | "gelsomino"
+  | "bulbi-fiori"
+  | "fiori-seminati"
   | "pothos"
   | "caffe"
   | "monstera"

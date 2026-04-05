@@ -13,6 +13,8 @@ export const SPECIES_OPTIONS: Array<{ value: SpeciesKey; label: string }> = [
   { value: "salvia", label: "Salvia" },
   { value: "rosmarino", label: "Rosmarino" },
   { value: "gelsomino", label: "Gelsomino" },
+  { value: "bulbi-fiori", label: "Bulbi da fiore" },
+  { value: "fiori-seminati", label: "Fiori seminati" },
   { value: "pothos", label: "Pothos" },
   { value: "caffe", label: "Caffè" },
   { value: "monstera", label: "Monstera" },
@@ -269,6 +271,122 @@ const PLANT_PROFILES: Record<SpeciesKey, PlantProfile> = {
       accent: "#ffffff",
       pot: "#dbd1c1",
       bloom: "#fffdf7",
+    },
+  },
+  "bulbi-fiori": {
+    key: "bulbi-fiori",
+    name: "Bulbi da fiore",
+    scientificName: "Bulbous flowering plants",
+    environmentLabel: "Balcone",
+    sunlight:
+      "Molti bulbi da fiore gradiscono luce abbondante o sole leggero, con substrato drenante e vaso non fradicio.",
+    watering:
+      "Durante la crescita attiva il terriccio va tenuto appena umido; dopo la fioritura spesso si riduce gradualmente l'acqua.",
+    feeding:
+      "Un concime leggero in fase vegetativa puo aiutare fioritura e ricarica del bulbo.",
+    pruning:
+      "Rimuovi i fiori sfioriti, ma lascia il fogliame finche non ingiallisce per permettere al bulbo di ricaricarsi.",
+    needs: ["drenaggio", "luce", "acqua moderata", "gestione stagionale"],
+    watchouts: ["ristagni", "vaso sempre bagnato", "tagliare il fogliame troppo presto"],
+    source: {
+      label: "RHS Bulbs",
+      url: "https://www.rhs.org.uk/plants/types/bulbs",
+    },
+    tasks: [
+      {
+        type: "water",
+        intervalDays: 3,
+        label: "Annaffia",
+        description:
+          "Mantieni il substrato appena umido finche i bulbi sono in crescita attiva.",
+        priority: "medium",
+        weatherSensitive: true,
+        dryWeatherReduction: 1,
+        baseAmountMl: [220, 320],
+        dueOnFirstLoad: true,
+      },
+      {
+        type: "fertilize",
+        intervalDays: 30,
+        label: "Concima",
+        description:
+          "Un apporto leggero in stagione puo sostenere fiori e riserva del bulbo.",
+        priority: "low",
+        months: [3, 4, 5, 9, 10],
+      },
+      {
+        type: "prune",
+        intervalDays: 14,
+        label: "Pulisci i fiori sfioriti",
+        description:
+          "Togli le corolle finite ma lascia il fogliame verde finche non si esaurisce da solo.",
+        priority: "medium",
+        months: [3, 4, 5, 6],
+      },
+    ],
+    illustrationTone: {
+      leaf: "#5f9a54",
+      accent: "#f1c86c",
+      pot: "#e3d6c7",
+      bloom: "#fff2d8",
+    },
+  },
+  "fiori-seminati": {
+    key: "fiori-seminati",
+    name: "Fiori seminati",
+    scientificName: "Flower seedlings",
+    environmentLabel: "Balcone",
+    sunlight:
+      "Le piantine da seme hanno bisogno di molta luce e buona aria, ma all'inizio conviene evitare stress eccessivi.",
+    watering:
+      "Il terriccio va mantenuto uniformemente umido, con annaffiature leggere e piu frequenti rispetto a piante adulte.",
+    feeding:
+      "Quando le piantine si sono stabilizzate, puoi usare un concime leggero e diluito.",
+    pruning:
+      "Controlla se serve diradare o spuntare leggermente le cime quando la crescita si infittisce.",
+    needs: ["umidita costante", "luce", "delicatezza", "osservazione frequente"],
+    watchouts: ["substrato che secca troppo", "eccesso d'acqua", "piantine troppo fitte"],
+    source: {
+      label: "RHS Annuals and Biennials",
+      url: "https://www.rhs.org.uk/plants/types/annuals-biennials",
+    },
+    tasks: [
+      {
+        type: "water",
+        intervalDays: 2,
+        label: "Annaffia",
+        description:
+          "Le semine in vaso richiedono controlli ravvicinati per evitare asciugature complete.",
+        priority: "urgent",
+        weatherSensitive: true,
+        dryWeatherReduction: 1,
+        baseAmountMl: [180, 260],
+        dueOnFirstLoad: true,
+      },
+      {
+        type: "fertilize",
+        intervalDays: 21,
+        label: "Concima leggermente",
+        description:
+          "Procedi solo quando le piantine hanno preso forza e non sono piu in fase appena emersa.",
+        priority: "low",
+        months: [4, 5, 6, 7, 8, 9],
+      },
+      {
+        type: "prune",
+        intervalDays: 10,
+        label: "Controlla se diradare",
+        description:
+          "Se le piantine sono molto fitte, valuta diradamento o piccola cimatura in base alla specie.",
+        priority: "medium",
+        months: [4, 5, 6],
+      },
+    ],
+    illustrationTone: {
+      leaf: "#72a85e",
+      accent: "#f4a7b9",
+      pot: "#e5d8cb",
+      bloom: "#ffe3eb",
     },
   },
   pothos: {
@@ -581,6 +699,28 @@ export function createSeedState(): StoreState {
       addedAt: createdAt,
     },
     {
+      id: "balcone-bulbi-fiori",
+      speciesKey: "bulbi-fiori",
+      customName: "Bulbi da fiore",
+      environment: "balcone",
+      quantity: 1,
+      potType: "vaso",
+      exposure: "Sud-est",
+      addedAt: createdAt,
+      notes: "Gruppo generico da dettagliare per specie quando vuoi.",
+    },
+    {
+      id: "balcone-fiori-seminati",
+      speciesKey: "fiori-seminati",
+      customName: "Fiori seminati",
+      environment: "balcone",
+      quantity: 1,
+      potType: "vaso",
+      exposure: "Sud-est",
+      addedAt: createdAt,
+      notes: "Semina floreale generica da rifinire per specie.",
+    },
+    {
       id: "casa-pothos",
       speciesKey: "pothos",
       customName: "Pothos",
@@ -633,6 +773,8 @@ export function createSeedState(): StoreState {
     buildSeedCompletion(today, "balcone-salvia", "water", 2),
     buildSeedCompletion(today, "balcone-rosmarino", "water", 3),
     buildSeedCompletion(today, "balcone-gelsomino", "water", 2),
+    buildSeedCompletion(today, "balcone-bulbi-fiori", "water", 2),
+    buildSeedCompletion(today, "balcone-fiori-seminati", "water", 1),
     buildSeedCompletion(today, "casa-pothos", "water", 5),
     buildSeedCompletion(today, "casa-caffe", "water", 4),
     buildSeedCompletion(today, "casa-monstera", "water", 6),

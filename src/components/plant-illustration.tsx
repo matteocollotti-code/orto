@@ -222,6 +222,92 @@ function renderPlant(speciesKey: SpeciesKey, tone: PlantProfile["illustrationTon
           ))}
         </>
       );
+    case "bulbi-fiori":
+      return (
+        <>
+          {[84, 110, 136].map((x, index) => (
+            <path
+              key={`${speciesKey}-stem-${x}`}
+              d={`M${x} 104V${62 + index * 2}`}
+              stroke="#705948"
+              strokeWidth="2.6"
+              strokeLinecap="round"
+            />
+          ))}
+          {[84, 110, 136].map((x, index) => (
+            <g key={`${speciesKey}-flower-${x}`}>
+              <circle cx={x} cy={62 + index * 2} r="3.2" fill="#f3c36a" />
+              {[0, 72, 144, 216, 288].map((rotate) => (
+                <ellipse
+                  key={`${speciesKey}-petal-${x}-${rotate}`}
+                  cx={x}
+                  cy={54 + index * 2}
+                  rx="5"
+                  ry="9"
+                  fill={index % 2 ? tone.accent : tone.bloom ?? "#fff1d8"}
+                  transform={`rotate(${rotate} ${x} ${62 + index * 2})`}
+                />
+              ))}
+            </g>
+          ))}
+          {[76, 94, 102, 118, 128, 144].map((x, index) => (
+            <ellipse
+              key={`${speciesKey}-leaf-${x}`}
+              cx={x}
+              cy={92 - (index % 3) * 7}
+              rx="14"
+              ry="6"
+              fill={tone.leaf}
+              transform={`rotate(${index % 2 ? 18 : -18} ${x} ${92 - (index % 3) * 7})`}
+            />
+          ))}
+        </>
+      );
+    case "fiori-seminati":
+      return (
+        <>
+          {[78, 96, 114, 132, 150].map((x, index) => (
+            <path
+              key={`${speciesKey}-stem-${x}`}
+              d={`M${x} 104V${80 - index * 4}`}
+              stroke="#735d48"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+            />
+          ))}
+          {[78, 96, 114, 132, 150].map((x, index) => (
+            <g key={`${speciesKey}-bloom-${x}`}>
+              <circle cx={x} cy={80 - index * 4} r="2.5" fill="#f2d07a" />
+              {[0, 90, 180, 270].map((rotate) => (
+                <ellipse
+                  key={`${speciesKey}-petal-${x}-${rotate}`}
+                  cx={x}
+                  cy={74 - index * 4}
+                  rx="4"
+                  ry="7"
+                  fill={index % 2 ? tone.bloom ?? "#ffe4ec" : tone.accent}
+                  transform={`rotate(${rotate} ${x} ${80 - index * 4})`}
+                />
+              ))}
+            </g>
+          ))}
+          {Array.from({ length: 10 }).map((_, index) => {
+            const x = 74 + index * 8;
+            const y = 106 - (index % 3) * 4;
+            return (
+              <ellipse
+                key={`${speciesKey}-sprout-${index}`}
+                cx={x}
+                cy={y}
+                rx="9"
+                ry="4"
+                fill={tone.leaf}
+                transform={`rotate(${index % 2 ? 20 : -20} ${x} ${y})`}
+              />
+            );
+          })}
+        </>
+      );
     case "pothos":
       return (
         <>
