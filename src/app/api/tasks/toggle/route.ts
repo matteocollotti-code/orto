@@ -8,7 +8,6 @@ const toggleTaskSchema = z.object({
   taskId: z.string().min(5),
   plantId: z.string().min(3),
   taskType: z.enum(["water", "fertilize", "change-water", "prune", "harvest"]),
-  actor: z.string().trim().max(40).optional(),
   done: z.boolean(),
 });
 
@@ -23,7 +22,7 @@ export async function POST(request: Request) {
         plantId: payload.plantId,
         taskType: payload.taskType,
         taskDate: completionDate,
-        completedBy: payload.actor?.trim() || "Persona 1",
+        completedBy: "Condivisa",
         completedAt: new Date().toISOString(),
       };
     } else {

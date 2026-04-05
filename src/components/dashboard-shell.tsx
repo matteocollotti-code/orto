@@ -20,7 +20,6 @@ import {
   Trees,
 } from "lucide-react";
 import { PlantIllustration } from "@/components/plant-illustration";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -113,7 +112,6 @@ const INITIAL_FORM: PlantFormState = {
 export function DashboardShell({ initialState }: DashboardShellProps) {
   const [dashboard, setDashboard] = useState(initialState);
   const [activeTab, setActiveTab] = useState<"tutte" | EnvironmentKey>("tutte");
-  const [activePerson, setActivePerson] = useState("Persona 1");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isMeasurementsDialogOpen, setIsMeasurementsDialogOpen] = useState(false);
   const [form, setForm] = useState<PlantFormState>(INITIAL_FORM);
@@ -124,18 +122,6 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
   const [isPending, startTransition] = useTransition();
   const deferredTab = useDeferredValue(activeTab);
   const attemptedRestoreRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem("orto-active-person");
-
-    if (stored) {
-      setActivePerson(stored);
-    }
-  }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem("orto-active-person", activePerson);
-  }, [activePerson]);
 
   useEffect(() => {
     try {
@@ -226,7 +212,6 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
               taskId,
               plantId,
               taskType,
-              actor: activePerson,
               done,
             }),
           });
@@ -348,8 +333,6 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
         <div className="mx-auto flex min-h-screen w-full max-w-[1480px] flex-col gap-6 px-4 py-4 sm:px-6 lg:px-8 lg:py-8">
           {renderHeader({
             dashboard,
-            activePerson,
-            setActivePerson,
             setIsDialogOpen,
             notice,
             tasksByEnvironment,
@@ -396,20 +379,11 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
 
 function renderHeader(_props: {
   dashboard: DashboardState;
-  activePerson: string;
-  setActivePerson: (value: string) => void;
   setIsDialogOpen: (value: boolean) => void;
   notice: string | null;
   tasksByEnvironment: { balcone: number; casa: number };
 }) {
-  const {
-    dashboard,
-    activePerson,
-    setActivePerson,
-    setIsDialogOpen,
-    notice,
-    tasksByEnvironment,
-  } = _props;
+  const { dashboard, setIsDialogOpen, notice, tasksByEnvironment } = _props;
 
   return (
     <header className="glass-panel flex flex-col gap-5 rounded-[2rem] px-5 py-5 sm:px-6 lg:px-8">
@@ -434,27 +408,16 @@ function renderHeader(_props: {
 
           <p className="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">
             {dashboard.weather.summary} Oggi il balcone riceve attenzione speciale
-            sull&apos;acqua, mentre dentro casa la dashboard usa intervalli specie-specifici,
-            salva chi ha fatto ogni task e puo affinare le dosi in base alle misure
-            reali delle piante.
+            sull&apos;acqua, mentre dentro casa la dashboard usa intervalli
+            specie-specifici. Quando una task viene segnata, la checklist aggiornata
+            resta la stessa per chi visita il sito.
           </p>
         </div>
 
         <div className="flex w-full max-w-[26rem] flex-col gap-4 rounded-[1.6rem] border border-border/70 bg-background/70 p-4">
-          <div className="flex items-center gap-3">
-            <Avatar className="size-11 border border-border/60">
-              <AvatarFallback>{getInitials(activePerson)}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <Label htmlFor="active-person">Operatore attivo</Label>
-              <Input
-                id="active-person"
-                value={activePerson}
-                onChange={(event) => setActivePerson(event.target.value || "Persona 1")}
-                placeholder="Es. Matteo"
-                className="mt-2"
-              />
-            </div>
+          <div className="rounded-[1.35rem] border border-border/70 bg-primary/8 px-4 py-4 text-sm leading-6 text-muted-foreground">
+            La checklist e condivisa: se una task viene segnata come fatta, il suo
+            stato aggiornato e quello che vedono tutti gli utenti del sito.
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -531,8 +494,8 @@ function renderTaskAndWeather(_props: {
               </div>
               <CardTitle className="mt-2">Checklist condivisa</CardTitle>
               <CardDescription>
-                Segna i task come fatti: il nome dell&apos;operatore resta visibile anche
-                all&apos;altra persona.
+                Segna i task come fatti: la checklist aggiornata e la stessa per tutti
+                gli utenti che aprono il sito.
               </CardDescription>
             </div>
           </div>
@@ -616,10 +579,7 @@ function renderTaskAndWeather(_props: {
                                 : `Da ${formatDate(task.dueDate)}`}
                             </span>
                             {task.completedAt ? (
-                              <span>
-                                fatto da {task.completedBy} il{" "}
-                                {formatDateTime(task.completedAt)}
-                              </span>
+                              <span>completato il {formatDateTime(task.completedAt)}</span>
                             ) : null}
                           </div>
                         </div>
@@ -1385,15 +1345,6 @@ function hasMeasurementsSaved(plant: DashboardPlant) {
 
 function formatMeasurement(value?: number) {
   return value ? `${value} cm` : "da inserire";
-}
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
 }
 
 function priorityVariant(priority: "urgent" | "medium" | "low") {
