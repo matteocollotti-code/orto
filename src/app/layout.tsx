@@ -16,9 +16,9 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "oRTO | Control Room",
+  title: "oRTO | Dashboard Orto e Piante",
   description:
-    "Webapp Next.js pronta per Vercel per monitorare coltivazioni, sensori e deploy in un'unica interfaccia.",
+    "Dashboard condivisa per monitorare orto domestico e piante in casa, con task giornalieri, meteo di Milano e schede informative.",
 };
 
 export default function RootLayout({
