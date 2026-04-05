@@ -1,25 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { buildDashboardState } from "@/lib/dashboard";
+import { SPECIES_KEYS } from "@/lib/orto-types";
 import { getStore, updateStore } from "@/lib/store";
 
 const plantSchema = z.object({
   id: z.string().min(3).max(120),
-  speciesKey: z.enum([
-    "basilico",
-    "limone",
-    "salvia",
-    "rosmarino",
-    "gelsomino",
-    "bulbi-fiori",
-    "fiori-seminati",
-    "pothos",
-    "caffe",
-    "monstera",
-    "avocado",
-    "pothos-acqua",
-    "custom",
-  ]),
+  speciesKey: z.enum(SPECIES_KEYS),
   customName: z.string().trim().min(1).max(60),
   environment: z.enum(["casa", "balcone"]),
   quantity: z.coerce.number().int().min(1).max(24),

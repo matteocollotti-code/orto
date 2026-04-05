@@ -2,7 +2,8 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { buildDashboardState } from "@/lib/dashboard";
-import { SPECIES_OPTIONS } from "@/lib/plant-profiles";
+import { getSpeciesLabel } from "@/lib/plant-profiles";
+import { SPECIES_KEYS } from "@/lib/orto-types";
 import { updateStore } from "@/lib/store";
 
 const optionalMeasureSchema = z.preprocess(
@@ -11,21 +12,7 @@ const optionalMeasureSchema = z.preprocess(
 );
 
 const createPlantSchema = z.object({
-  speciesKey: z.enum([
-    "basilico",
-    "limone",
-    "salvia",
-    "rosmarino",
-    "gelsomino",
-    "bulbi-fiori",
-    "fiori-seminati",
-    "pothos",
-    "caffe",
-    "monstera",
-    "avocado",
-    "pothos-acqua",
-    "custom",
-  ]),
+  speciesKey: z.enum(SPECIES_KEYS),
   customName: z.string().trim().max(60).optional(),
   environment: z.enum(["casa", "balcone"]),
   quantity: z.coerce.number().int().min(1).max(24),
@@ -39,9 +26,7 @@ const createPlantSchema = z.object({
 
 export async function POST(request: Request) {
   const payload = createPlantSchema.parse(await request.json());
-  const fallbackName =
-    SPECIES_OPTIONS.find((option) => option.value === payload.speciesKey)?.label ??
-    "Nuova pianta";
+  const fallbackName = getSpeciesLabel(payload.speciesKey);
 
   await updateStore((state) => {
     const customName = payload.customName?.trim() || fallbackName;

@@ -46,6 +46,7 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -55,7 +56,8 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   ENVIRONMENT_OPTIONS,
   POT_OPTIONS,
-  SPECIES_OPTIONS,
+  SPECIES_GROUPS,
+  getSpeciesLabel,
 } from "@/lib/plant-profiles";
 import type {
   DashboardPlant,
@@ -774,7 +776,9 @@ function renderPlantSections(_props: {
                               {plant.displayName}
                             </h3>
                             <p className="mt-1 text-sm text-muted-foreground">
-                              {plant.profile.scientificName}
+                              {usesCustomPlantName(plant)
+                                ? `${plant.profile.name} · ${plant.profile.scientificName}`
+                                : plant.profile.scientificName}
                             </p>
                           </div>
                         </div>
@@ -821,13 +825,13 @@ function renderPlantSections(_props: {
                               <div className="flex items-center gap-2 text-primary">
                                 <Ruler className="size-4" />
                                 <p className="text-sm font-medium text-foreground">
-                                  Misure e calibrazione acqua
+                                  Scheda e calibrazione acqua
                                 </p>
                               </div>
                               <p className="mt-1 text-sm leading-6 text-muted-foreground">
                                 {hasMeasurements
-                                  ? "Le dosi proposte usano queste misure per essere piu vicine al vaso reale."
-                                  : "Aggiungi altezza, larghezza e diametro vaso per rendere piu affidabili le quantita di acqua."}
+                                  ? "Qui puoi rinominare la pianta e aggiornare misure, esposizione e note per mantenere la scheda precisa."
+                                  : "Completa nome, misure, esposizione e note per rendere piu affidabili le quantita di acqua."}
                               </p>
                             </div>
                             <Button
@@ -835,7 +839,7 @@ function renderPlantSections(_props: {
                               size="sm"
                               onClick={() => openMeasurementsDialog(plant)}
                             >
-                              {hasMeasurements ? "Aggiorna misure" : "Inserisci misure"}
+                              Modifica scheda
                             </Button>
                           </div>
 
@@ -961,8 +965,9 @@ function renderPlantDialog(_props: {
         <DialogHeader>
           <DialogTitle>Aggiungi una nuova pianta</DialogTitle>
           <DialogDescription>
-            Salva specie, ambiente e misure utili: la dashboard le terra in memoria e
-            usera questi dati anche per affinare le dosi d&apos;acqua.
+            Scegli una specie dal catalogo, dai un nome alla pianta e salva ambiente
+            e misure utili: la dashboard le terra in memoria e usera questi dati anche
+            per affinare le dosi d&apos;acqua.
           </DialogDescription>
         </DialogHeader>
 
@@ -973,37 +978,38 @@ function renderPlantDialog(_props: {
               value={form.speciesKey}
               onValueChange={(value) =>
                 setForm((current) => ({
-                  ...current,
-                  speciesKey: value as SpeciesKey,
-                  potType: value === "pothos-acqua" ? "acquacoltura" : current.potType,
+                  ...getNextPlantFormStateForSpecies(current, value as SpeciesKey),
                 }))
               }
             >
               <SelectTrigger id="species">
                 <SelectValue placeholder="Scegli una specie" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {SPECIES_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
+              <SelectContent className="max-h-[26rem]">
+                {SPECIES_GROUPS.map((group) => (
+                  <SelectGroup key={group.label}>
+                    <SelectLabel>{group.label}</SelectLabel>
+                    {group.options.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
-              <Label htmlFor="name">Nome scheda</Label>
+              <Label htmlFor="name">Nome pianta o scheda</Label>
               <Input
                 id="name"
                 value={form.customName}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, customName: event.target.value }))
                 }
-                placeholder="Es. Ficus del salotto"
+                placeholder={getPlantNamePlaceholder(form.speciesKey)}
               />
             </div>
             <div className="grid gap-2">
@@ -1183,10 +1189,10 @@ function renderMeasurementsDialog(_props: {
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Aggiorna misure e dettagli</DialogTitle>
+          <DialogTitle>Modifica scheda pianta</DialogTitle>
           <DialogDescription>
-            Le misure restano in memoria e aiutano la dashboard a suggerire dosi di
-            acqua piu vicine alla realta.
+            Qui puoi rinominare la pianta, aggiornare le misure e salvare note che
+            restano in memoria per tutti gli utenti del sito.
           </DialogDescription>
         </DialogHeader>
 
@@ -1343,6 +1349,36 @@ function MeasurementLine({ label, value }: { label: string; value: string }) {
 
 function hasMeasurementsSaved(plant: DashboardPlant) {
   return Boolean(plant.heightCm || plant.spreadCm || plant.potDiameterCm);
+}
+
+function usesCustomPlantName(plant: DashboardPlant) {
+  return normalizePlantName(plant.customName) !== normalizePlantName(plant.profile.name);
+}
+
+function normalizePlantName(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function getNextPlantFormStateForSpecies(
+  current: PlantFormState,
+  speciesKey: SpeciesKey,
+): PlantFormState {
+  const currentDefaultName = getSpeciesLabel(current.speciesKey);
+  const nextDefaultName = getSpeciesLabel(speciesKey);
+  const shouldReplaceName =
+    !current.customName.trim() || current.customName.trim() === currentDefaultName;
+
+  return {
+    ...current,
+    speciesKey,
+    customName: shouldReplaceName ? nextDefaultName : current.customName,
+    potType: speciesKey === "pothos-acqua" ? "acquacoltura" : current.potType,
+  };
+}
+
+function getPlantNamePlaceholder(speciesKey: SpeciesKey) {
+  const defaultName = getSpeciesLabel(speciesKey);
+  return `Es. ${defaultName} del soggiorno`;
 }
 
 function formatMeasurement(value?: number) {

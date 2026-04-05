@@ -11,20 +11,50 @@ export type TaskType =
 
 export type TaskPriority = "urgent" | "medium" | "low";
 
-export type SpeciesKey =
-  | "basilico"
-  | "limone"
-  | "salvia"
-  | "rosmarino"
-  | "gelsomino"
-  | "bulbi-fiori"
-  | "fiori-seminati"
-  | "pothos"
-  | "caffe"
-  | "monstera"
-  | "avocado"
-  | "pothos-acqua"
-  | "custom";
+export const SPECIES_KEYS = [
+  "basilico",
+  "salvia",
+  "rosmarino",
+  "lavanda",
+  "menta",
+  "timo",
+  "origano",
+  "prezzemolo",
+  "erba-cipollina",
+  "pomodoro",
+  "peperoncino",
+  "fragola",
+  "limone",
+  "gelsomino",
+  "geranio",
+  "bulbi-fiori",
+  "fiori-seminati",
+  "pothos",
+  "pothos-acqua",
+  "monstera",
+  "filodendro",
+  "spatifillo",
+  "aglaonema",
+  "calathea-orbifolia",
+  "anthurium",
+  "pilea",
+  "hoya",
+  "peperomia",
+  "falangio",
+  "dracena",
+  "sansevieria",
+  "zamioculcas",
+  "aloe-vera",
+  "crassula",
+  "tradescantia",
+  "ficus-elastica",
+  "ficus-lyrata",
+  "caffe",
+  "avocado",
+  "custom",
+] as const;
+
+export type SpeciesKey = (typeof SPECIES_KEYS)[number];
 
 export type Plant = {
   id: string;
