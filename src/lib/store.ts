@@ -26,18 +26,18 @@ function getFileTarget() {
   if (process.env.VERCEL) {
     return {
       provider: "ephemeral" as const,
+      durable: false,
       shared: false,
-      label: "Fallback temporaneo",
-      note: "Su Vercel senza Redis la memoria resta solo temporanea. Per una sync reale tra due persone aggiungi Upstash Redis.",
+      recovery: "browser-backup" as const,
       filePath: path.join("/tmp", "orto-store.json"),
     };
   }
 
   return {
     provider: "local-file" as const,
+    durable: true,
     shared: true,
-    label: "File locale",
-    note: "In sviluppo i dati vengono salvati in un file locale del progetto.",
+    recovery: "none" as const,
     filePath: path.join(/* turbopackIgnore: true */ process.cwd(), ".data", "orto-store.json"),
   };
 }
@@ -46,9 +46,9 @@ export function getStorageMeta() {
   if (getRedisClient()) {
     return {
       provider: "redis" as const,
+      durable: true,
       shared: true,
-      label: "Redis condiviso",
-      note: "Stato condiviso persistente, adatto a due persone e deploy Vercel.",
+      recovery: "none" as const,
     };
   }
 
@@ -56,9 +56,9 @@ export function getStorageMeta() {
 
   return {
     provider: target.provider,
+    durable: target.durable,
     shared: target.shared,
-    label: target.label,
-    note: target.note,
+    recovery: target.recovery,
   };
 }
 

@@ -158,10 +158,11 @@ export type DashboardState = {
   today: string;
   storage: {
     provider: "redis" | "local-file" | "ephemeral";
+    durable: boolean;
     shared: boolean;
-    label: string;
-    note: string;
+    recovery: "none" | "browser-backup";
   };
+  storeSnapshot: StoreState;
   weather: WeatherSnapshot;
   plants: DashboardPlant[];
   tasksToday: DashboardTask[];

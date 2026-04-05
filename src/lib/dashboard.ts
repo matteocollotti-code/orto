@@ -38,6 +38,7 @@ export async function buildDashboardState(): Promise<DashboardState> {
   return {
     today,
     storage,
+    storeSnapshot: store,
     weather,
     plants,
     tasksToday,

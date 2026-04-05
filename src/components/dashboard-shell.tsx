@@ -3,6 +3,7 @@
 import {
   useDeferredValue,
   useEffect,
+  useRef,
   useState,
   useTransition,
 } from "react";
@@ -62,8 +63,11 @@ import type {
   DashboardState,
   EnvironmentKey,
   SpeciesKey,
+  StoreState,
 } from "@/lib/orto-types";
 import { formatDate, formatDateTime } from "@/lib/utils";
+
+const BROWSER_BACKUP_KEY = "orto-store-backup";
 
 type DashboardShellProps = {
   initialState: DashboardState;
@@ -119,6 +123,7 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
   const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const deferredTab = useDeferredValue(activeTab);
+  const attemptedRestoreRef = useRef<string | null>(null);
 
   useEffect(() => {
     const stored = window.localStorage.getItem("orto-active-person");
@@ -131,6 +136,64 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
   useEffect(() => {
     window.localStorage.setItem("orto-active-person", activePerson);
   }, [activePerson]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        BROWSER_BACKUP_KEY,
+        JSON.stringify(dashboard.storeSnapshot),
+      );
+    } catch {}
+  }, [dashboard.storeSnapshot]);
+
+  useEffect(() => {
+    if (dashboard.storage.recovery !== "browser-backup") {
+      return;
+    }
+
+    if (attemptedRestoreRef.current === dashboard.storeSnapshot.updatedAt) {
+      return;
+    }
+
+    attemptedRestoreRef.current = dashboard.storeSnapshot.updatedAt;
+
+    let backup: StoreState | null = null;
+
+    try {
+      const rawBackup = window.localStorage.getItem(BROWSER_BACKUP_KEY);
+      backup = rawBackup ? (JSON.parse(rawBackup) as StoreState) : null;
+    } catch {
+      window.localStorage.removeItem(BROWSER_BACKUP_KEY);
+      return;
+    }
+
+    if (!backup || !isBackupNewer(backup.updatedAt, dashboard.storeSnapshot.updatedAt)) {
+      return;
+    }
+
+    startTransition(() => {
+      void (async () => {
+        try {
+          const response = await fetch("/api/store/restore", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ state: backup }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Non sono riuscito a ripristinare i dati salvati.");
+          }
+
+          const nextState = (await response.json()) as DashboardState;
+          setDashboard(nextState);
+        } catch {
+          // If restore fails we keep the current dashboard and try again on a future refresh.
+        }
+      })();
+    });
+  }, [dashboard.storage.recovery, dashboard.storeSnapshot.updatedAt, startTransition]);
 
   const plants =
     deferredTab === "tutte"
@@ -355,9 +418,7 @@ function renderHeader(_props: {
           <div className="flex flex-wrap items-center gap-3">
             <Badge variant="success">Milano live</Badge>
             <Badge variant="subtle">Dashboard quotidiana</Badge>
-            <Badge variant={dashboard.storage.shared ? "default" : "warning"}>
-              {dashboard.storage.label}
-            </Badge>
+            {dashboard.storage.shared ? <Badge variant="default">Condivisa</Badge> : null}
           </div>
 
           <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
@@ -439,13 +500,6 @@ function renderHeader(_props: {
         <Badge variant="outline">Balcone {tasksByEnvironment.balcone}</Badge>
         <Badge variant="outline">Casa {tasksByEnvironment.casa}</Badge>
       </div>
-
-      {!dashboard.storage.shared ? (
-        <div className="rounded-[1.35rem] border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900">
-          {dashboard.storage.note}
-        </div>
-      ) : null}
-
       {notice ? (
         <div className="rounded-[1.35rem] border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-900">
           {notice}
@@ -1376,4 +1430,19 @@ function irrigationLabel(bias: "high" | "medium" | "low") {
   }
 
   return "basso";
+}
+
+function isBackupNewer(backupUpdatedAt?: string, currentUpdatedAt?: string) {
+  if (!backupUpdatedAt || !currentUpdatedAt) {
+    return false;
+  }
+
+  const backupTime = Date.parse(backupUpdatedAt);
+  const currentTime = Date.parse(currentUpdatedAt);
+
+  if (Number.isNaN(backupTime) || Number.isNaN(currentTime)) {
+    return false;
+  }
+
+  return backupTime > currentTime;
 }

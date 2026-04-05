@@ -28,10 +28,10 @@ App disponibile su [http://localhost:3000](http://localhost:3000).
 ## Persistenza dei dati
 
 - In locale i dati vengono salvati in un file del progetto.
-- Su Vercel, per avere uno stato davvero condiviso tra due persone, aggiungi Redis con una delle coppie di variabili:
+- In produzione la webapp salva anche un backup nel browser e puo ripristinare automaticamente l'ultimo stato visto se il deploy riparte da zero.
+- Per una persistenza davvero centrale e sempre condivisa tra due persone su Vercel, aggiungi Redis con una delle coppie di variabili:
   - `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN`
   - oppure `KV_REST_API_URL` e `KV_REST_API_TOKEN`
-- Se Redis non e configurato, la webapp mostra comunque la dashboard ma usa un fallback temporaneo lato server, non adatto a una sincronizzazione affidabile nel lungo periodo.
 
 ## Deploy su Vercel
 
@@ -54,7 +54,7 @@ App disponibile su [http://localhost:3000](http://localhost:3000).
 
 ## Passi utili dopo questa base
 
-- collegare Redis dal progetto Vercel per completare la sync multiutente
+- collegare Redis dal progetto Vercel per completare la sync multiutente sempre centralizzata
 - aggiungere autenticazione o nomi utente preimpostati
 - affinare le dosi d'acqua in base al diametro reale dei vasi
 - collegare notifiche o reminder automatici
