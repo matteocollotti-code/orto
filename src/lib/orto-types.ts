@@ -103,6 +103,7 @@ export type WeatherSnapshot = {
   city: string;
   today: WeatherDay;
   yesterday: WeatherDay;
+  tomorrow: WeatherDay;
   current: {
     timestamp: string;
     temperature: number;
@@ -119,6 +120,17 @@ export type WeatherSnapshot = {
 export type PlantSource = {
   label: string;
   url: string;
+};
+
+export type NightShelterRule = {
+  bringInsideBelowC: number;
+  summary: string;
+};
+
+export type NightShelterAdvice = {
+  status: "bring-inside" | "watch" | "outside-ok";
+  label: string;
+  detail: string;
 };
 
 export type PlantingCalendarEntry = {
@@ -168,6 +180,7 @@ export type PlantProfile = {
   pruning: string;
   needs: string[];
   watchouts: string[];
+  nightShelter?: NightShelterRule;
   source: PlantSource;
   tasks: PlantTaskRule[];
   illustrationTone: {
@@ -203,6 +216,7 @@ export type DashboardPlant = Plant & {
   lastWateredAt?: string;
   lastFedAt?: string;
   lastWaterChangedAt?: string;
+  nightShelterAdvice?: NightShelterAdvice;
 };
 
 export type DashboardState = {

@@ -29,13 +29,14 @@ type OpenMeteoResponse = {
 export async function getWeatherSnapshot(): Promise<WeatherSnapshot> {
   const today = getRomeDate();
   const yesterday = addDays(today, -1);
+  const tomorrow = addDays(today, 1);
   const sourceUrl =
     "https://api.open-meteo.com/v1/forecast" +
     `?latitude=${MILAN.latitude}` +
     `&longitude=${MILAN.longitude}` +
     "&timezone=Europe%2FRome" +
     `&start_date=${yesterday}` +
-    `&end_date=${today}` +
+    `&end_date=${tomorrow}` +
     "&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m" +
     "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_hours,et0_fao_evapotranspiration,wind_speed_10m_max";
 
@@ -49,7 +50,7 @@ export async function getWeatherSnapshot(): Promise<WeatherSnapshot> {
     }
 
     const data = (await response.json()) as OpenMeteoResponse;
-    const [yesterdayIndex, todayIndex] = [0, 1];
+    const [yesterdayIndex, todayIndex, tomorrowIndex] = [0, 1, 2];
     const yesterdayDay = {
       date: data.daily.time[yesterdayIndex],
       tempMax: data.daily.temperature_2m_max[yesterdayIndex],
@@ -68,12 +69,22 @@ export async function getWeatherSnapshot(): Promise<WeatherSnapshot> {
       evapotranspiration: data.daily.et0_fao_evapotranspiration[todayIndex],
       windMax: data.daily.wind_speed_10m_max[todayIndex],
     };
+    const tomorrowDay = {
+      date: data.daily.time[tomorrowIndex],
+      tempMax: data.daily.temperature_2m_max[tomorrowIndex],
+      tempMin: data.daily.temperature_2m_min[tomorrowIndex],
+      precipitationSum: data.daily.precipitation_sum[tomorrowIndex],
+      precipitationHours: data.daily.precipitation_hours[tomorrowIndex],
+      evapotranspiration: data.daily.et0_fao_evapotranspiration[tomorrowIndex],
+      windMax: data.daily.wind_speed_10m_max[tomorrowIndex],
+    };
     const drynessScore = computeDrynessScore(todayDay, yesterdayDay);
 
     return {
       city: MILAN.city,
       today: todayDay,
       yesterday: yesterdayDay,
+      tomorrow: tomorrowDay,
       current: {
         timestamp: data.current.time,
         temperature: data.current.temperature_2m,
@@ -88,7 +99,7 @@ export async function getWeatherSnapshot(): Promise<WeatherSnapshot> {
       sourceUrl,
     };
   } catch {
-    return fallbackWeather(sourceUrl, today, yesterday);
+    return fallbackWeather(sourceUrl, today, yesterday, tomorrow);
   }
 }
 
@@ -146,7 +157,12 @@ function buildSummary(
   return `Condizioni più morbide per l'irrigazione: ${rainText} e stress idrico limitato.`;
 }
 
-function fallbackWeather(sourceUrl: string, today: string, yesterday: string): WeatherSnapshot {
+function fallbackWeather(
+  sourceUrl: string,
+  today: string,
+  yesterday: string,
+  tomorrow: string,
+): WeatherSnapshot {
   const yesterdayDay = {
     date: yesterday,
     tempMax: 21.6,
@@ -166,11 +182,21 @@ function fallbackWeather(sourceUrl: string, today: string, yesterday: string): W
     evapotranspiration: 3.87,
     windMax: 9.7,
   };
+  const tomorrowDay = {
+    date: tomorrow,
+    tempMax: 21.4,
+    tempMin: 11.2,
+    precipitationSum: 0.2,
+    precipitationHours: 1,
+    evapotranspiration: 3.1,
+    windMax: 8.8,
+  };
 
   return {
     city: MILAN.city,
     today: todayDay,
     yesterday: yesterdayDay,
+    tomorrow: tomorrowDay,
     current: {
       timestamp: `${today}T22:00`,
       temperature: 16.4,

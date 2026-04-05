@@ -11,6 +11,7 @@ import type {
   DashboardPlant,
   DashboardState,
   DashboardTask,
+  NightShelterAdvice,
   Plant,
   PlantTaskRule,
   StoreState,
@@ -26,7 +27,7 @@ export async function buildDashboardState(): Promise<DashboardState> {
   const [store, weather] = await Promise.all([getStore(), getWeatherSnapshot()]);
   const today = getRomeDate();
   const storage = getStorageMeta();
-  const plants = mapPlants(store);
+  const plants = mapPlants(store, weather);
   const tasks = buildTasks(store, weather, today);
   const plantingGuide = buildSeasonalPlantingGuide(today, weather);
   const tasksToday = tasks
@@ -67,7 +68,7 @@ export async function buildDashboardState(): Promise<DashboardState> {
   };
 }
 
-function mapPlants(store: StoreState): DashboardPlant[] {
+function mapPlants(store: StoreState, weather: WeatherSnapshot): DashboardPlant[] {
   return store.plants
     .map((plant) => {
       const profile = getPlantProfile(plant.speciesKey);
@@ -81,6 +82,7 @@ function mapPlants(store: StoreState): DashboardPlant[] {
         lastFedAt: findLatestCompletion(store, plant.id, "fertilize")?.taskDate,
         lastWaterChangedAt: findLatestCompletion(store, plant.id, "change-water")
           ?.taskDate,
+        nightShelterAdvice: buildNightShelterAdvice(plant, weather),
       };
     })
     .sort((left, right) => left.environment.localeCompare(right.environment));
@@ -273,6 +275,46 @@ function buildAmount(plant: Plant, rule: PlantTaskRule, weather: WeatherSnapshot
   }
 
   return `${min}-${max} ml circa.`;
+}
+
+function buildNightShelterAdvice(
+  plant: Plant,
+  weather: WeatherSnapshot,
+): NightShelterAdvice | undefined {
+  if (plant.environment !== "balcone") {
+    return undefined;
+  }
+
+  const rule = getPlantProfile(plant.speciesKey).nightShelter;
+
+  if (!rule) {
+    return undefined;
+  }
+
+  const overnightMin = weather.tomorrow.tempMin;
+  const threshold = rule.bringInsideBelowC;
+
+  if (overnightMin < threshold) {
+    return {
+      status: "bring-inside",
+      label: "Portala dentro stanotte",
+      detail: `Minima prevista ${overnightMin.toFixed(1)} C, sotto la soglia consigliata di ${threshold} C. ${rule.summary}`,
+    };
+  }
+
+  if (overnightMin < threshold + 2) {
+    return {
+      status: "watch",
+      label: "Controllala stanotte",
+      detail: `Minima prevista ${overnightMin.toFixed(1)} C, vicina alla soglia di ${threshold} C. ${rule.summary}`,
+    };
+  }
+
+  return {
+    status: "outside-ok",
+    label: "Puo restare fuori stanotte",
+    detail: `Minima prevista ${overnightMin.toFixed(1)} C, sopra la soglia di ${threshold} C. ${rule.summary}`,
+  };
 }
 
 function findLatestCompletion(

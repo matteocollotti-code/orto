@@ -15,6 +15,7 @@ import {
   Droplets,
   Leaf,
   MapPin,
+  MoonStar,
   Plus,
   Ruler,
   Sprout,
@@ -664,6 +665,12 @@ function renderTaskAndWeather(_props: {
                   {dashboard.weather.today.windMax.toFixed(1)} km/h
                 </span>
               </div>
+              <div className="flex items-center justify-between rounded-[1.25rem] bg-secondary/40 px-4 py-3 text-sm">
+                <span className="text-muted-foreground">Minima prossima notte</span>
+                <span className="font-medium">
+                  {dashboard.weather.tomorrow.tempMin.toFixed(1)} C
+                </span>
+              </div>
               <a
                 href={dashboard.weather.sourceUrl}
                 target="_blank"
@@ -823,6 +830,29 @@ function renderPlantSections(_props: {
                           ))}
                         </div>
 
+                        {plant.nightShelterAdvice ? (
+                          <div className="rounded-[1.3rem] border border-border/70 bg-secondary/20 px-4 py-4">
+                            <div className="flex items-start gap-3">
+                              <div className="mt-1 rounded-full bg-primary/10 p-2 text-primary">
+                                <MoonStar className="size-4" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="text-sm font-medium text-foreground">
+                                    Notte sul balcone
+                                  </p>
+                                  <Badge variant={nightShelterVariant(plant.nightShelterAdvice.status)}>
+                                    {plant.nightShelterAdvice.label}
+                                  </Badge>
+                                </div>
+                                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                                  {plant.nightShelterAdvice.detail}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ) : null}
+
                         <div className="rounded-[1.3rem] border border-border/70 bg-secondary/20 px-4 py-4">
                           <div className="flex items-start justify-between gap-3">
                             <div>
@@ -892,6 +922,14 @@ function renderPlantSections(_props: {
                             <p>
                               <span className="font-medium text-foreground">Esposizione:</span>{" "}
                               {plant.exposure}
+                            </p>
+                          ) : null}
+                          {plant.nightShelterAdvice ? (
+                            <p>
+                              <span className="font-medium text-foreground">
+                                Rientro notturno:
+                              </span>{" "}
+                              {plant.nightShelterAdvice.label.toLowerCase()}
                             </p>
                           ) : null}
                           {plant.notes ? (
@@ -1500,6 +1538,18 @@ function InfoLine({
       </div>
     </div>
   );
+}
+
+function nightShelterVariant(status: "bring-inside" | "watch" | "outside-ok") {
+  if (status === "bring-inside") {
+    return "warning" as const;
+  }
+
+  if (status === "watch") {
+    return "default" as const;
+  }
+
+  return "success" as const;
 }
 
 function MeasurementLine({ label, value }: { label: string; value: string }) {

@@ -141,6 +141,10 @@ const PLANT_PROFILES = {
       "Pizzica spesso le punte per ritardare la fioritura e mantenere la pianta compatta.",
     needs: ["calore", "sole", "raccolta regolare", "vaso drenante"],
     watchouts: ["soffre il freddo", "in vaso si asciuga in fretta", "teme ristagni"],
+    nightShelter: {
+      bringInsideBelowC: 12,
+      summary: "Il basilico soffre subito le notti fresche e reagisce meglio se rientrato appena le minime si abbassano.",
+    },
     source: {
       label: "RHS Basil Guide",
       url: "https://www.rhs.org.uk/herbs/basil/grow-your-own",
@@ -182,6 +186,10 @@ const PLANT_PROFILES = {
       "Raccogli le foglie giovani e spunta dopo la fioritura per mantenerla compatta.",
     needs: ["sole", "drenaggio", "aria", "potature leggere"],
     watchouts: ["ristagni", "ombra prolungata", "substrato pesante"],
+    nightShelter: {
+      bringInsideBelowC: 2,
+      summary: "La salvia adulta puo restare fuori, ma in vaso conviene proteggerla se arriva freddo quasi da gelo.",
+    },
     source: {
       label: "RHS Sage Guide",
       url: "https://www.rhs.org.uk/herbs/sage/grow-your-own",
@@ -216,6 +224,10 @@ const PLANT_PROFILES = {
     pruning: "Taglio annuale leggero dopo la fioritura per mantenerlo compatto.",
     needs: ["sole", "substrato drenante", "potature leggere"],
     watchouts: ["radici bagnate a lungo", "sottovaso pieno", "ombra fitta"],
+    nightShelter: {
+      bringInsideBelowC: 1,
+      summary: "Il rosmarino regge bene all'aperto, ma in vaso piccolo e con freddo vicino allo zero e meglio ripararlo.",
+    },
     source: {
       label: "RHS Rosemary Guide",
       url: "https://www.rhs.org.uk/herbs/rosemary/grow-your-own",
@@ -251,6 +263,10 @@ const PLANT_PROFILES = {
       "Spunta regolarmente i fiori finiti e fai potature leggere per mantenere la cupola compatta.",
     needs: ["sole", "drenaggio", "aria", "substrato leggero"],
     watchouts: ["ristagni", "ombra umida", "potature drastiche sul legno vecchio"],
+    nightShelter: {
+      bringInsideBelowC: 2,
+      summary: "La lavanda di solito resta fuori, ma in contenitore va protetta quando le minime scendono verso il gelo.",
+    },
     source: {
       label: "RHS Lavender Guide",
       url: "https://www.rhs.org.uk/plants/lavender",
@@ -296,6 +312,10 @@ const PLANT_PROFILES = {
     pruning: "Raccogli e spunta spesso per mantenerla piena e ritardare la fioritura.",
     needs: ["vaso fresco", "controlli frequenti", "raccolta regolare"],
     watchouts: ["vaso troppo secco", "sole forte tutto il giorno", "crescita invadente"],
+    nightShelter: {
+      bringInsideBelowC: 3,
+      summary: "La menta tollera il fresco, ma in vaso giovane o molto bagnato e meglio ripararla nelle notti quasi fredde.",
+    },
     source: {
       label: "RHS Mint Guide",
       url: "https://www.rhs.org.uk/herbs/mint/grow-your-own",
@@ -336,6 +356,10 @@ const PLANT_PROFILES = {
     pruning: "Spunta dopo la fioritura e raccogli spesso i rametti teneri.",
     needs: ["sole", "drenaggio", "vaso arioso"],
     watchouts: ["ristagni", "ombra umida", "legno vecchio molto fitto"],
+    nightShelter: {
+      bringInsideBelowC: 2,
+      summary: "Il timo puo stare fuori quasi sempre, ma in vaso piccolo conviene ripararlo se si va verso il gelo.",
+    },
     source: {
       label: "RHS Thyme Guide",
       url: "https://www.rhs.org.uk/herbs/thyme/grow-your-own",
@@ -370,6 +394,10 @@ const PLANT_PROFILES = {
     pruning: "Spunta e raccogli le cime per mantenere il cespo giovane.",
     needs: ["sole", "drenaggio", "raccolta regolare"],
     watchouts: ["eccesso d'acqua", "ombra lunga", "vaso sempre bagnato"],
+    nightShelter: {
+      bringInsideBelowC: 2,
+      summary: "L'origano resta fuori senza problemi nella maggior parte delle notti, salvo freddo vicino allo zero.",
+    },
     source: {
       label: "RHS Oregano Guide",
       url: "https://www.rhs.org.uk/herbs/oregano/grow-your-own",
@@ -404,6 +432,10 @@ const PLANT_PROFILES = {
     pruning: "Raccogli i gambi esterni e lascia il cuore centrale libero di ricacciare.",
     needs: ["luce abbondante", "umidita regolare", "raccolta esterna"],
     watchouts: ["vaso che asciuga del tutto", "caldo eccessivo senza acqua", "ristagni"],
+    nightShelter: {
+      bringInsideBelowC: 4,
+      summary: "Il prezzemolo giovane in vaso apprezza protezione nelle notti fredde, soprattutto se molto esposto.",
+    },
     source: {
       label: "RHS Parsley Guide",
       url: "https://www.rhs.org.uk/herbs/parsley/grow-your-own",
@@ -444,6 +476,10 @@ const PLANT_PROFILES = {
     pruning: "Taglia regolarmente le foglie piu esterne per stimolare il ricaccio.",
     needs: ["luce", "substrato fresco", "tagli regolari"],
     watchouts: ["vaso sempre fradicio", "bulbi compressi", "foglie vecchie non pulite"],
+    nightShelter: {
+      bringInsideBelowC: 3,
+      summary: "L'erba cipollina regge bene, ma in vaso esposto puo essere utile spostarla al riparo se la notte diventa molto fredda.",
+    },
     source: {
       label: "RHS Chives Guide",
       url: "https://www.rhs.org.uk/herbs/chives/grow-your-own",
@@ -486,6 +522,10 @@ const PLANT_PROFILES = {
       "Controlla tutoraggio e pulizia dei germogli in base alla varieta, evitando interventi troppo aggressivi se e cespuglioso.",
     needs: ["sole pieno", "vaso capiente", "tutore", "acqua costante"],
     watchouts: ["collassi idrici", "foglie bagnate la sera", "ristagni lunghi"],
+    nightShelter: {
+      bringInsideBelowC: 10,
+      summary: "Il pomodoro rallenta e soffre con notti fredde: se la minima scende troppo, meglio rientrare il vaso o proteggerlo bene.",
+    },
     source: {
       label: "RHS Tomato Guide",
       url: "https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own",
@@ -532,6 +572,10 @@ const PLANT_PROFILES = {
       "Pulisci foglie rovinate e controlla l'equilibrio della chioma se carica di frutti.",
     needs: ["sole", "calore", "vaso drenante", "nutrimento costante"],
     watchouts: ["freddo", "sbalzi idrici", "ristagni"],
+    nightShelter: {
+      bringInsideBelowC: 12,
+      summary: "Il peperoncino e molto sensibile alle notti fresche e lavora meglio se resta al caldo quando le minime calano.",
+    },
     source: {
       label: "RHS Chilli Pepper Guide",
       url: "https://www.rhs.org.uk/vegetables/chilli-pepper/grow-your-own",
@@ -570,6 +614,10 @@ const PLANT_PROFILES = {
     pruning: "Rimuovi foglie secche, stoloni in eccesso e frutti rovinati.",
     needs: ["sole", "substrato fresco", "aria", "frutti puliti"],
     watchouts: ["substrato che secca del tutto", "frutti appoggiati sul bagnato", "ristagni"],
+    nightShelter: {
+      bringInsideBelowC: 2,
+      summary: "Le fragole possono restare fuori, ma in vaso giovane o con freddo quasi da gelo e meglio proteggerle.",
+    },
     source: {
       label: "RHS Strawberry Guide",
       url: "https://www.rhs.org.uk/fruit/strawberries/grow-your-own",
@@ -615,6 +663,10 @@ const PLANT_PROFILES = {
     pruning: "Potature leggere di contenimento e rimozione dei rami secchi.",
     needs: ["sole", "drenaggio", "umidita moderata", "nutrimento regolare"],
     watchouts: ["radici sensibili ai ristagni", "aria secca indoor", "freddo intenso"],
+    nightShelter: {
+      bringInsideBelowC: 5,
+      summary: "Il limone in vaso gradisce essere riparato quando la notte si avvicina al freddo vero, soprattutto se giovane o ventoso.",
+    },
     source: {
       label: "RHS Citrus Guide",
       url: "https://www.rhs.org.uk/fruit/citrus/grow-your-own",
@@ -660,6 +712,10 @@ const PLANT_PROFILES = {
     pruning: "Pota e guida i getti dopo la fioritura per contenere la crescita.",
     needs: ["supporto", "sole o mezz'ombra", "umidita costante", "spazio per allargarsi"],
     watchouts: ["secchezza prolungata", "crescita disordinata", "poca luce"],
+    nightShelter: {
+      bringInsideBelowC: 4,
+      summary: "Il gelsomino in vaso puo stare fuori a lungo, ma con notti quasi fredde e meglio spostarlo in posizione piu riparata.",
+    },
     source: {
       label: "Clemson Jasmine Fact Sheet",
       url: "https://hgic.clemson.edu/factsheet/jasmine/",
@@ -698,6 +754,10 @@ const PLANT_PROFILES = {
     pruning: "Elimina foglie e corolle sfiorite per prolungare la fioritura.",
     needs: ["sole", "drenaggio", "fiori puliti", "aria"],
     watchouts: ["ristagni", "foglie molto bagnate la sera", "ombreggiamento eccessivo"],
+    nightShelter: {
+      bringInsideBelowC: 7,
+      summary: "Il geranio soffre le notti fredde prolungate: se la minima scende troppo, meglio rientrarlo o schermarlo bene.",
+    },
     source: {
       label: "NC State Geranium",
       url: "https://plants.ces.ncsu.edu/plants/pelargonium-x-hybridum/",
@@ -745,6 +805,10 @@ const PLANT_PROFILES = {
       "Rimuovi i fiori sfioriti, ma lascia il fogliame finche non ingiallisce per permettere al bulbo di ricaricarsi.",
     needs: ["drenaggio", "luce", "acqua moderata", "gestione stagionale"],
     watchouts: ["ristagni", "vaso sempre bagnato", "tagliare il fogliame troppo presto"],
+    nightShelter: {
+      bringInsideBelowC: 2,
+      summary: "I bulbi da fiore in genere restano fuori, ma i vasi piccoli vanno protetti se la notte scende verso il gelo.",
+    },
     source: {
       label: "RHS Bulbs",
       url: "https://www.rhs.org.uk/plants/types/bulbs",
@@ -794,6 +858,10 @@ const PLANT_PROFILES = {
       "Controlla se serve diradare o spuntare leggermente le cime quando la crescita si infittisce.",
     needs: ["umidita costante", "luce", "delicatezza", "osservazione frequente"],
     watchouts: ["substrato che secca troppo", "eccesso d'acqua", "piantine troppo fitte"],
+    nightShelter: {
+      bringInsideBelowC: 10,
+      summary: "Le piantine da seme sono piu delicate delle piante adulte: con notti fresche e molto meglio ripararle dentro.",
+    },
     source: {
       label: "RHS Annuals and Biennials",
       url: "https://www.rhs.org.uk/plants/types/annuals-biennials",
@@ -1758,6 +1826,7 @@ function createProfile(definition: ProfileDefinition): PlantProfile {
     pruning: definition.pruning,
     needs: definition.needs,
     watchouts: definition.watchouts,
+    nightShelter: definition.nightShelter,
     source: definition.source,
     tasks,
     illustrationTone: definition.illustrationTone,
