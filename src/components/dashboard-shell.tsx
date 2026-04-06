@@ -150,7 +150,19 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
         const nextState = (await response.json()) as DashboardState;
 
         if (isActive) {
-          setDashboard(nextState);
+          setDashboard((current) => {
+            const backup = readBrowserBackup();
+            const freshestTimestamp =
+              backup && isTimestampNewer(backup.updatedAt, current.storeSnapshot.updatedAt)
+                ? backup.updatedAt
+                : current.storeSnapshot.updatedAt;
+
+            if (isTimestampNewer(freshestTimestamp, nextState.storeSnapshot.updatedAt)) {
+              return current;
+            }
+
+            return nextState;
+          });
         }
       } catch {}
     }
@@ -181,10 +193,13 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(
-        BROWSER_BACKUP_KEY,
-        JSON.stringify(dashboard.storeSnapshot),
-      );
+      const backup = readBrowserBackup();
+
+      if (backup && isTimestampNewer(backup.updatedAt, dashboard.storeSnapshot.updatedAt)) {
+        return;
+      }
+
+      window.localStorage.setItem(BROWSER_BACKUP_KEY, JSON.stringify(dashboard.storeSnapshot));
     } catch {}
   }, [dashboard.storeSnapshot]);
 
@@ -199,17 +214,9 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
 
     attemptedRestoreRef.current = dashboard.storeSnapshot.updatedAt;
 
-    let backup: StoreState | null = null;
+    const backup = readBrowserBackup();
 
-    try {
-      const rawBackup = window.localStorage.getItem(BROWSER_BACKUP_KEY);
-      backup = rawBackup ? (JSON.parse(rawBackup) as StoreState) : null;
-    } catch {
-      window.localStorage.removeItem(BROWSER_BACKUP_KEY);
-      return;
-    }
-
-    if (!backup || !isBackupNewer(backup.updatedAt, dashboard.storeSnapshot.updatedAt)) {
+    if (!backup || !isTimestampNewer(backup.updatedAt, dashboard.storeSnapshot.updatedAt)) {
       return;
     }
 
@@ -1928,6 +1935,16 @@ function formatMeasurement(value?: number) {
   return value ? `${value} cm` : "da inserire";
 }
 
+function readBrowserBackup() {
+  try {
+    const rawBackup = window.localStorage.getItem(BROWSER_BACKUP_KEY);
+    return rawBackup ? (JSON.parse(rawBackup) as StoreState) : null;
+  } catch {
+    window.localStorage.removeItem(BROWSER_BACKUP_KEY);
+    return null;
+  }
+}
+
 function priorityVariant(priority: "urgent" | "medium" | "low") {
   if (priority === "urgent") {
     return "warning" as const;
@@ -1964,17 +1981,17 @@ function irrigationLabel(bias: "high" | "medium" | "low") {
   return "basso";
 }
 
-function isBackupNewer(backupUpdatedAt?: string, currentUpdatedAt?: string) {
-  if (!backupUpdatedAt || !currentUpdatedAt) {
+function isTimestampNewer(leftUpdatedAt?: string, rightUpdatedAt?: string) {
+  if (!leftUpdatedAt || !rightUpdatedAt) {
     return false;
   }
 
-  const backupTime = Date.parse(backupUpdatedAt);
-  const currentTime = Date.parse(currentUpdatedAt);
+  const leftTime = Date.parse(leftUpdatedAt);
+  const rightTime = Date.parse(rightUpdatedAt);
 
-  if (Number.isNaN(backupTime) || Number.isNaN(currentTime)) {
+  if (Number.isNaN(leftTime) || Number.isNaN(rightTime)) {
     return false;
   }
 
-  return backupTime > currentTime;
+  return leftTime > rightTime;
 }
