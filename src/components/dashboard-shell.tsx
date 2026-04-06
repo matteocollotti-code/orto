@@ -120,8 +120,8 @@ const INITIAL_FORM: PlantFormState = {
 export function DashboardShell({ initialState }: DashboardShellProps) {
   const [dashboard, setDashboard] = useState(initialState);
   const [activeTab, setActiveTab] = useState<"tutte" | EnvironmentKey>("tutte");
-  const [isPlantsExpanded, setIsPlantsExpanded] = useState(false);
-  const [isPlantingGuideExpanded, setIsPlantingGuideExpanded] = useState(false);
+  const [isPlantCatalogOpen, setIsPlantCatalogOpen] = useState(false);
+  const [isPlantingGuideOpen, setIsPlantingGuideOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isMeasurementsDialogOpen, setIsMeasurementsDialogOpen] = useState(false);
   const [form, setForm] = useState<PlantFormState>(INITIAL_FORM);
@@ -385,7 +385,7 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
         <div className="pointer-events-none absolute left-[-12rem] top-[-12rem] size-[26rem] rounded-full bg-[radial-gradient(circle,_rgba(74,132,89,0.34)_0%,_rgba(74,132,89,0)_70%)] blur-3xl" />
         <div className="pointer-events-none absolute bottom-[-12rem] right-[-8rem] size-[28rem] rounded-full bg-[radial-gradient(circle,_rgba(44,92,58,0.42)_0%,_rgba(44,92,58,0)_70%)] blur-3xl" />
 
-        <div className="mx-auto flex min-h-screen w-full max-w-[1480px] flex-col gap-6 px-4 py-4 sm:px-6 lg:px-8 lg:py-8">
+        <div className="mx-auto flex min-h-screen w-full max-w-[1480px] flex-col gap-6 px-4 py-4 pb-28 sm:px-6 sm:pb-32 lg:px-8 lg:py-8 lg:pb-36">
           {renderHeader({
             dashboard,
             setIsDialogOpen,
@@ -400,25 +400,16 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
             handleToggleTask,
           })}
 
-          {renderPlantSections({
-            activeTab,
-            setActiveTab,
-            plants,
-            openMeasurementsDialog,
-            isExpanded: isPlantsExpanded,
-            onToggleExpanded: () => setIsPlantsExpanded((current) => !current),
-          })}
-
           {renderAssumptions(dashboard)}
-
-          {renderPlantingGuide({
-            dashboard,
-            isExpanded: isPlantingGuideExpanded,
-            onToggleExpanded: () =>
-              setIsPlantingGuideExpanded((current) => !current),
-          })}
         </div>
       </div>
+
+      {renderBottomDock({
+        plantCount: dashboard.stats.plantCount,
+        currentPeriodLabel: dashboard.plantingGuide.currentPeriodLabel,
+        openPlantCatalog: () => setIsPlantCatalogOpen(true),
+        openPlantingGuide: () => setIsPlantingGuideOpen(true),
+      })}
 
       {renderPlantDialog({
         isDialogOpen,
@@ -436,6 +427,21 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
         setMeasurementsForm,
         handleSaveMeasurements,
         isPending,
+      })}
+
+      {renderPlantCatalogDialog({
+        isOpen: isPlantCatalogOpen,
+        onOpenChange: setIsPlantCatalogOpen,
+        activeTab,
+        setActiveTab,
+        plants,
+        openMeasurementsDialog,
+      })}
+
+      {renderPlantingGuideDialog({
+        isOpen: isPlantingGuideOpen,
+        onOpenChange: setIsPlantingGuideOpen,
+        dashboard,
       })}
     </div>
   );
@@ -781,6 +787,7 @@ function renderPlantSections(_props: {
   openMeasurementsDialog: (plant: DashboardPlant) => void;
   isExpanded: boolean;
   onToggleExpanded: () => void;
+  showToggle?: boolean;
 }) {
   const {
     activeTab,
@@ -789,6 +796,7 @@ function renderPlantSections(_props: {
     openMeasurementsDialog,
     isExpanded,
     onToggleExpanded,
+    showToggle = true,
   } = _props;
 
   return (
@@ -813,12 +821,14 @@ function renderPlantSections(_props: {
           </div>
         </div>
 
-        <SectionToggleButton
-          isExpanded={isExpanded}
-          onClick={onToggleExpanded}
-          collapsedLabel="Apri tutte le schede pianta"
-          expandedLabel="Chiudi tutte le schede pianta"
-        />
+        {showToggle ? (
+          <SectionToggleButton
+            isExpanded={isExpanded}
+            onClick={onToggleExpanded}
+            collapsedLabel="Apri tutte le schede pianta"
+            expandedLabel="Chiudi tutte le schede pianta"
+          />
+        ) : null}
       </CardHeader>
 
       {isExpanded ? (
@@ -1053,8 +1063,9 @@ function renderPlantingGuide(_props: {
   dashboard: DashboardState;
   isExpanded: boolean;
   onToggleExpanded: () => void;
+  showToggle?: boolean;
 }) {
-  const { dashboard, isExpanded, onToggleExpanded } = _props;
+  const { dashboard, isExpanded, onToggleExpanded, showToggle = true } = _props;
   const { plantingGuide } = dashboard;
 
   return (
@@ -1081,12 +1092,14 @@ function renderPlantingGuide(_props: {
           </div>
         </div>
 
-        <SectionToggleButton
-          isExpanded={isExpanded}
-          onClick={onToggleExpanded}
-          collapsedLabel="Apri il planner stagionale"
-          expandedLabel="Chiudi il planner stagionale"
-        />
+        {showToggle ? (
+          <SectionToggleButton
+            isExpanded={isExpanded}
+            onClick={onToggleExpanded}
+            collapsedLabel="Apri il planner stagionale"
+            expandedLabel="Chiudi il planner stagionale"
+          />
+        ) : null}
       </CardHeader>
 
       {isExpanded ? (
@@ -1252,6 +1265,131 @@ function renderAssumptions(_dashboard: DashboardState) {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function renderBottomDock(_props: {
+  plantCount: number;
+  currentPeriodLabel: string;
+  openPlantCatalog: () => void;
+  openPlantingGuide: () => void;
+}) {
+  const { plantCount, currentPeriodLabel, openPlantCatalog, openPlantingGuide } =
+    _props;
+
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 px-4 sm:bottom-5">
+      <div className="pointer-events-auto mx-auto flex w-full max-w-[760px] items-center gap-3 rounded-[1.9rem] border border-border/70 bg-background/88 p-3 shadow-[0_20px_70px_rgba(6,16,10,0.46)] backdrop-blur-xl">
+        <Button
+          variant="outline"
+          onClick={openPlantCatalog}
+          className="h-auto min-w-0 flex-1 justify-start rounded-[1.45rem] border-border/70 bg-secondary/35 px-4 py-4 text-left"
+        >
+          <Trees className="size-5 text-primary" />
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-semibold">
+              Catalogo piante
+            </span>
+            <span className="block truncate text-xs text-muted-foreground">
+              {plantCount} schede con info e misure
+            </span>
+          </span>
+        </Button>
+
+        <Button
+          variant="outline"
+          onClick={openPlantingGuide}
+          className="h-auto min-w-0 flex-1 justify-start rounded-[1.45rem] border-border/70 bg-secondary/35 px-4 py-4 text-left"
+        >
+          <CalendarDays className="size-5 text-primary" />
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-semibold">
+              Semina stagionale
+            </span>
+            <span className="block truncate text-xs text-muted-foreground">
+              {currentPeriodLabel}
+            </span>
+          </span>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function renderPlantCatalogDialog(_props: {
+  isOpen: boolean;
+  onOpenChange: (value: boolean) => void;
+  activeTab: "tutte" | EnvironmentKey;
+  setActiveTab: (value: "tutte" | EnvironmentKey) => void;
+  plants: DashboardState["plants"];
+  openMeasurementsDialog: (plant: DashboardPlant) => void;
+}) {
+  const { isOpen, onOpenChange, activeTab, setActiveTab, plants, openMeasurementsDialog } =
+    _props;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[min(96vw,1280px)] max-h-[90vh] gap-0 overflow-hidden p-0">
+        <div className="border-b border-border/70 bg-background/92 px-6 py-5">
+          <DialogHeader>
+            <DialogTitle>Catalogo piante</DialogTitle>
+            <DialogDescription>
+              Tutte le schede informative sono raccolte qui, fuori dalla dashboard
+              quotidiana.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+
+        <ScrollArea className="max-h-[calc(90vh-7.5rem)]">
+          <div className="px-6 py-6">
+            {renderPlantSections({
+              activeTab,
+              setActiveTab,
+              plants,
+              openMeasurementsDialog,
+              isExpanded: true,
+              onToggleExpanded: () => undefined,
+              showToggle: false,
+            })}
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function renderPlantingGuideDialog(_props: {
+  isOpen: boolean;
+  onOpenChange: (value: boolean) => void;
+  dashboard: DashboardState;
+}) {
+  const { isOpen, onOpenChange, dashboard } = _props;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[min(96vw,1240px)] max-h-[90vh] gap-0 overflow-hidden p-0">
+        <div className="border-b border-border/70 bg-background/92 px-6 py-5">
+          <DialogHeader>
+            <DialogTitle>Semina stagionale</DialogTitle>
+            <DialogDescription>
+              Il planner stagionale resta separato dalla dashboard e si apre solo
+              quando vuoi pianificare semi e piantine.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+
+        <ScrollArea className="max-h-[calc(90vh-7.5rem)]">
+          <div className="px-6 py-6">
+            {renderPlantingGuide({
+              dashboard,
+              isExpanded: true,
+              onToggleExpanded: () => undefined,
+              showToggle: false,
+            })}
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
   );
 }
 
