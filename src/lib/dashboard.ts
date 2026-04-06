@@ -29,10 +29,9 @@ export async function buildDashboardState(): Promise<DashboardState> {
   const storage = getStorageMeta();
   const plants = mapPlants(store, weather);
   const tasks = buildTasks(store, weather, today);
+  const completedTasksToday = buildCompletedTasksForDate(store, weather, today);
   const plantingGuide = buildSeasonalPlantingGuide(today, weather);
-  const tasksToday = tasks
-    .filter((task) => diffInDays(task.dueDate, today) >= 0)
-    .sort(sortTasks);
+  const tasksToday = mergeTasksForToday(tasks, completedTasksToday, today).sort(sortTasks);
   const upcomingTasks = tasks
     .filter((task) => diffInDays(today, task.dueDate) > 0)
     .sort(sortTasks)
@@ -131,6 +130,94 @@ function buildTasks(
   }
 
   return tasks;
+}
+
+function buildCompletedTasksForDate(
+  store: StoreState,
+  weather: WeatherSnapshot,
+  today: string,
+): DashboardTask[] {
+  return Object.values(store.taskCompletions).reduce<DashboardTask[]>((tasks, completion) => {
+    if (completion.taskDate !== today) {
+      return tasks;
+    }
+
+    const plant = store.plants.find((entry) => entry.id === completion.plantId);
+
+    if (!plant) {
+      return tasks;
+    }
+
+    const rule = findTaskRuleForPlant(plant, completion.taskType);
+
+    tasks.push({
+      id: completion.taskId,
+      plantId: plant.id,
+      plantName: getDisplayPlantName(plant),
+      environment: plant.environment,
+      type: completion.taskType,
+      title: `${rule.label} ${plant.customName.toLowerCase()}`,
+      description: rule.description,
+      recommendation: buildRecommendation(plant, rule, weather),
+      reason: buildReason(plant, rule, weather, today),
+      amount: buildAmount(plant, rule, weather),
+      priority: rule.priority,
+      dueDate: completion.taskDate,
+      isDone: true,
+      completedBy: completion.completedBy,
+      completedAt: completion.completedAt,
+    } satisfies DashboardTask);
+
+    return tasks;
+  }, []);
+}
+
+function mergeTasksForToday(
+  tasks: DashboardTask[],
+  completedTasksToday: DashboardTask[],
+  today: string,
+) {
+  const merged = new Map<string, DashboardTask>();
+
+  for (const task of tasks) {
+    if (diffInDays(task.dueDate, today) >= 0) {
+      merged.set(task.id, task);
+    }
+  }
+
+  for (const task of completedTasksToday) {
+    merged.set(task.id, task);
+  }
+
+  return [...merged.values()];
+}
+
+function findTaskRuleForPlant(plant: Plant, taskType: TaskType): PlantTaskRule {
+  const profile = getPlantProfile(plant.speciesKey);
+
+  return (
+    profile.tasks.find((rule) => rule.type === taskType) ??
+    getFallbackTaskRule(taskType)
+  );
+}
+
+function getFallbackTaskRule(taskType: TaskType): PlantTaskRule {
+  const labels: Record<TaskType, string> = {
+    water: "Annaffia",
+    fertilize: "Concima",
+    "change-water": "Cambia l'acqua",
+    prune: "Pota",
+    harvest: "Raccogli",
+  };
+
+  return {
+    type: taskType,
+    intervalDays: 1,
+    label: labels[taskType],
+    description: "Task registrata oggi nella cronologia della pianta.",
+    priority: "medium",
+    amountLabel: "Intervento gia registrato oggi.",
+  };
 }
 
 function getDueDate(
@@ -348,6 +435,7 @@ function sortTasks(left: DashboardTask, right: DashboardTask) {
   const priorityWeight = { urgent: 0, medium: 1, low: 2 };
 
   return (
+    Number(left.isDone) - Number(right.isDone) ||
     priorityWeight[left.priority] - priorityWeight[right.priority] ||
     left.environment.localeCompare(right.environment) ||
     left.plantName.localeCompare(right.plantName)
