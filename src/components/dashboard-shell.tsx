@@ -15,12 +15,15 @@ import {
   ChevronUp,
   CloudSun,
   Droplets,
+  House,
   Leaf,
+  LayoutDashboard,
   MapPin,
   MoonStar,
   Plus,
   Ruler,
   Sprout,
+  SunMedium,
   Trees,
 } from "lucide-react";
 import { PlantIllustration } from "@/components/plant-illustration";
@@ -401,22 +404,32 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
             tasksByEnvironment,
           })}
 
+          {renderEnvironmentOverview({
+            dashboard,
+            tasksByEnvironment,
+            openMeasurementsDialog,
+          })}
+
           {renderTaskAndWeather({
             dashboard,
             isPending,
             pendingTaskId,
             handleToggleTask,
           })}
-
-          {renderAssumptions(dashboard)}
         </div>
       </div>
 
       {renderBottomDock({
         plantCount: dashboard.stats.plantCount,
         currentPeriodLabel: dashboard.plantingGuide.currentPeriodLabel,
+        openDashboard: () => {
+          setIsPlantCatalogOpen(false);
+          setIsPlantingGuideOpen(false);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        },
         openPlantCatalog: () => setIsPlantCatalogOpen(true),
         openPlantingGuide: () => setIsPlantingGuideOpen(true),
+        openAddPlant: () => setIsDialogOpen(true),
       })}
 
       {renderPlantDialog({
@@ -784,6 +797,129 @@ function renderTaskAndWeather(_props: {
           </CardContent>
         </Card>
       </div>
+    </section>
+  );
+}
+
+function renderEnvironmentOverview(_props: {
+  dashboard: DashboardState;
+  tasksByEnvironment: { balcone: number; casa: number };
+  openMeasurementsDialog: (plant: DashboardPlant) => void;
+}) {
+  const { dashboard, tasksByEnvironment, openMeasurementsDialog } = _props;
+  const environments: Array<{
+    key: EnvironmentKey;
+    label: string;
+    title: string;
+    subtitle: string;
+    icon: ReactNode;
+    plantCount: number;
+    tasksCount: number;
+  }> = [
+    {
+      key: "casa",
+      label: "Casa",
+      title: "Piante dentro casa",
+      subtitle: "Punto di controllo per tropicali, piante d'acqua e fogliame.",
+      icon: <House className="size-5" />,
+      plantCount: dashboard.stats.environments.casa,
+      tasksCount: tasksByEnvironment.casa,
+    },
+    {
+      key: "balcone",
+      label: "Balcone",
+      title: "Piante sul balcone",
+      subtitle: "Balcone esposto a sud-est, con meteo e irrigazione piu variabili.",
+      icon: <SunMedium className="size-5" />,
+      plantCount: dashboard.stats.environments.balcone,
+      tasksCount: tasksByEnvironment.balcone,
+    },
+  ];
+
+  return (
+    <section className="grid gap-4 xl:grid-cols-2">
+      {environments.map((environment) => {
+        const plants = dashboard.plants
+          .filter((plant) => plant.environment === environment.key)
+          .sort((left, right) => left.displayName.localeCompare(right.displayName));
+
+        return (
+          <Card key={environment.key} className="rounded-[2rem]">
+            <CardHeader className="gap-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <div className="flex items-center gap-2 text-primary">
+                    {environment.icon}
+                    <span className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
+                      {environment.label}
+                    </span>
+                  </div>
+                  <CardTitle className="mt-2">{environment.title}</CardTitle>
+                  <CardDescription className="mt-2 max-w-xl">
+                    {environment.subtitle}
+                  </CardDescription>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 lg:min-w-[13rem]">
+                  <div className="rounded-[1.2rem] border border-border/70 bg-secondary/35 px-3 py-3">
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                      Piante
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold tracking-[-0.04em]">
+                      {environment.plantCount}
+                    </p>
+                  </div>
+                  <div className="rounded-[1.2rem] border border-border/70 bg-secondary/35 px-3 py-3">
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                      Task
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold tracking-[-0.04em]">
+                      {environment.tasksCount}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="pt-0">
+              {plants.length ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {plants.map((plant) => (
+                    <button
+                      key={plant.id}
+                      type="button"
+                      onClick={() => openMeasurementsDialog(plant)}
+                      className="group flex items-center gap-3 rounded-[1.35rem] border border-border/70 bg-background/75 px-3 py-3 text-left transition hover:border-primary/35 hover:bg-primary/5"
+                    >
+                      <div className="flex size-14 shrink-0 items-center justify-center rounded-[1rem] border border-border/60 bg-secondary/30 p-2">
+                        <PlantIllustration
+                          speciesKey={plant.speciesKey}
+                          tone={plant.profile.illustrationTone}
+                          className="max-w-[2.75rem]"
+                        />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold tracking-[-0.02em] text-foreground">
+                          {plant.displayName}
+                        </p>
+                        <p className="mt-1 truncate text-xs text-muted-foreground">
+                          {plant.quantity > 1 ? `${plant.quantity} unita` : plant.profile.name}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-[1.45rem] border border-dashed border-border/70 bg-secondary/25 px-5 py-5 text-sm leading-6 text-muted-foreground">
+                  Nessuna pianta in questo ambiente per ora. Puoi aggiungerla dal
+                  pulsante in alto o dalla barra in basso.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
     </section>
   );
 }
@@ -1251,54 +1387,43 @@ function renderPlantingGuide(_props: {
   );
 }
 
-function renderAssumptions(_dashboard: DashboardState) {
-  return (
-    <Card className="rounded-[2rem]">
-      <CardHeader>
-        <CardTitle>Assunzioni iniziali</CardTitle>
-        <CardDescription>
-          Le puoi usare come checklist di calibrazione dopo i primi giorni di utilizzo.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="grid gap-3 lg:grid-cols-3">
-          {_dashboard.assumptions.map((assumption) => (
-            <div
-              key={assumption}
-              className="rounded-[1.35rem] border border-border/70 bg-secondary/35 px-4 py-4 text-sm leading-6 text-muted-foreground"
-            >
-              {assumption}
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 function renderBottomDock(_props: {
   plantCount: number;
   currentPeriodLabel: string;
+  openDashboard: () => void;
   openPlantCatalog: () => void;
   openPlantingGuide: () => void;
+  openAddPlant: () => void;
 }) {
-  const { plantCount, currentPeriodLabel, openPlantCatalog, openPlantingGuide } =
-    _props;
+  const {
+    plantCount,
+    currentPeriodLabel,
+    openDashboard,
+    openPlantCatalog,
+    openPlantingGuide,
+    openAddPlant,
+  } = _props;
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 px-4 sm:bottom-5">
-      <div className="pointer-events-auto mx-auto flex w-full max-w-[760px] items-center gap-3 rounded-[1.9rem] border border-border/70 bg-background/88 p-3 shadow-[0_20px_70px_rgba(6,16,10,0.46)] backdrop-blur-xl">
+      <div className="pointer-events-auto mx-auto flex w-full max-w-[860px] items-center gap-2 rounded-[1.9rem] border border-border/70 bg-background/88 p-2 shadow-[0_20px_70px_rgba(6,16,10,0.46)] backdrop-blur-xl sm:gap-3 sm:p-3">
+        <Button
+          onClick={openDashboard}
+          className="h-auto min-w-0 flex-1 rounded-[1.35rem] px-3 py-3 text-sm sm:px-4"
+        >
+          <LayoutDashboard className="size-4" />
+          <span className="truncate">Dashboard</span>
+        </Button>
+
         <Button
           variant="outline"
           onClick={openPlantCatalog}
-          className="h-auto min-w-0 flex-1 justify-start rounded-[1.45rem] border-border/70 bg-secondary/35 px-4 py-4 text-left"
+          className="h-auto min-w-0 flex-1 justify-center rounded-[1.35rem] border-border/70 bg-secondary/35 px-3 py-3 text-sm sm:justify-start sm:px-4"
         >
           <Trees className="size-5 text-primary" />
           <span className="min-w-0">
-            <span className="block truncate text-sm font-semibold">
-              Catalogo piante
-            </span>
-            <span className="block truncate text-xs text-muted-foreground">
+            <span className="block truncate font-semibold">Catalogo</span>
+            <span className="hidden truncate text-xs text-muted-foreground sm:block">
               {plantCount} schede con info e misure
             </span>
           </span>
@@ -1307,17 +1432,24 @@ function renderBottomDock(_props: {
         <Button
           variant="outline"
           onClick={openPlantingGuide}
-          className="h-auto min-w-0 flex-1 justify-start rounded-[1.45rem] border-border/70 bg-secondary/35 px-4 py-4 text-left"
+          className="h-auto min-w-0 flex-1 justify-center rounded-[1.35rem] border-border/70 bg-secondary/35 px-3 py-3 text-sm sm:justify-start sm:px-4"
         >
           <CalendarDays className="size-5 text-primary" />
           <span className="min-w-0">
-            <span className="block truncate text-sm font-semibold">
-              Semina stagionale
-            </span>
-            <span className="block truncate text-xs text-muted-foreground">
+            <span className="block truncate font-semibold">Semina</span>
+            <span className="hidden truncate text-xs text-muted-foreground sm:block">
               {currentPeriodLabel}
             </span>
           </span>
+        </Button>
+
+        <Button
+          variant="outline"
+          onClick={openAddPlant}
+          className="h-auto min-w-0 flex-1 justify-center rounded-[1.35rem] border-border/70 bg-secondary/35 px-3 py-3 text-sm sm:px-4"
+        >
+          <Plus className="size-4 text-primary" />
+          <span className="truncate font-semibold">Aggiungi</span>
         </Button>
       </div>
     </div>
