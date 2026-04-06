@@ -42,7 +42,7 @@ export async function getWeatherSnapshot(): Promise<WeatherSnapshot> {
 
   try {
     const response = await fetch(sourceUrl, {
-      next: { revalidate: 1800 },
+      next: { revalidate: 600 },
     });
 
     if (!response.ok) {

@@ -74,6 +74,7 @@ import type {
 import { formatDate, formatDateTime } from "@/lib/utils";
 
 const BROWSER_BACKUP_KEY = "orto-store-backup";
+const LIVE_REFRESH_MS = 10 * 60 * 1000;
 
 type DashboardShellProps = {
   initialState: DashboardState;
@@ -131,6 +132,51 @@ export function DashboardShell({ initialState }: DashboardShellProps) {
   const [isPending, startTransition] = useTransition();
   const deferredTab = useDeferredValue(activeTab);
   const attemptedRestoreRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function refreshDashboard() {
+      try {
+        const response = await fetch("/api/dashboard", {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const nextState = (await response.json()) as DashboardState;
+
+        if (isActive) {
+          setDashboard(nextState);
+        }
+      } catch {}
+    }
+
+    const handleVisibilityRefresh = () => {
+      if (document.visibilityState === "visible") {
+        void refreshDashboard();
+      }
+    };
+
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        void refreshDashboard();
+      }
+    }, LIVE_REFRESH_MS);
+
+    void refreshDashboard();
+    window.addEventListener("focus", handleVisibilityRefresh);
+    document.addEventListener("visibilitychange", handleVisibilityRefresh);
+
+    return () => {
+      isActive = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", handleVisibilityRefresh);
+      document.removeEventListener("visibilitychange", handleVisibilityRefresh);
+    };
+  }, []);
 
   useEffect(() => {
     try {
