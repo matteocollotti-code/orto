@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  DialogClose,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -1428,208 +1429,214 @@ function renderPlantDialog(_props: {
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Aggiungi una nuova pianta</DialogTitle>
-          <DialogDescription>
-            Scegli una specie dal catalogo, dai un nome alla pianta e salva ambiente
-            e misure utili: la dashboard le terra in memoria e usera questi dati anche
-            per affinare le dosi d&apos;acqua.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="species">Specie</Label>
-            <Select
-              value={form.speciesKey}
-              onValueChange={(value) =>
-                setForm((current) => ({
-                  ...getNextPlantFormStateForSpecies(current, value as SpeciesKey),
-                }))
-              }
-            >
-              <SelectTrigger id="species">
-                <SelectValue placeholder="Scegli una specie" />
-              </SelectTrigger>
-              <SelectContent className="max-h-[26rem]">
-                {SPECIES_GROUPS.map((group) => (
-                  <SelectGroup key={group.label}>
-                    <SelectLabel>{group.label}</SelectLabel>
-                    {group.options.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Nome pianta o scheda</Label>
-              <Input
-                id="name"
-                value={form.customName}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, customName: event.target.value }))
-                }
-                placeholder={getPlantNamePlaceholder(form.speciesKey)}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="quantity">Quantita</Label>
-              <Input
-                id="quantity"
-                type="number"
-                min={1}
-                max={24}
-                value={form.quantity}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    quantity: Number(event.target.value) || 1,
-                  }))
-                }
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-2">
-              <Label htmlFor="environment">Ambiente</Label>
-              <Select
-                value={form.environment}
-                onValueChange={(value) =>
-                  setForm((current) => ({ ...current, environment: value as EnvironmentKey }))
-                }
-              >
-                <SelectTrigger id="environment">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {ENVIRONMENT_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="pot-type">Tipo di gestione</Label>
-              <Select
-                value={form.potType}
-                onValueChange={(value) =>
-                  setForm((current) => ({
-                    ...current,
-                    potType: value as PlantFormState["potType"],
-                  }))
-                }
-              >
-                <SelectTrigger id="pot-type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {POT_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="exposure">Esposizione o punto luce</Label>
-            <Input
-              id="exposure"
-              value={form.exposure}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, exposure: event.target.value }))
-              }
-              placeholder="Es. sud-est, finestra luminosa, mezz'ombra"
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="grid gap-2">
-              <Label htmlFor="height">Altezza (cm)</Label>
-              <Input
-                id="height"
-                type="number"
-                min={1}
-                max={999}
-                value={form.heightCm}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, heightCm: event.target.value }))
-                }
-                placeholder="Es. 35"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="spread">Larghezza (cm)</Label>
-              <Input
-                id="spread"
-                type="number"
-                min={1}
-                max={999}
-                value={form.spreadCm}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, spreadCm: event.target.value }))
-                }
-                placeholder="Es. 28"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="pot-diameter">Diametro vaso (cm)</Label>
-              <Input
-                id="pot-diameter"
-                type="number"
-                min={1}
-                max={999}
-                value={form.potDiameterCm}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    potDiameterCm: event.target.value,
-                  }))
-                }
-                placeholder="Es. 18"
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="notes">Note utili</Label>
-            <Textarea
-              id="notes"
-              value={form.notes}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, notes: event.target.value }))
-              }
-              placeholder="Vaso grande, terreno drenante, ultime osservazioni..."
-            />
-          </div>
+      <DialogContent className="w-[min(96vw,680px)] max-h-[92vh] gap-0 overflow-hidden p-0 sm:max-h-[90vh]">
+        <div className="border-b border-border/70 bg-background/92 px-4 py-4 sm:px-6 sm:py-5">
+          <DialogHeader className="pr-10">
+            <DialogTitle>Aggiungi una nuova pianta</DialogTitle>
+            <DialogDescription>
+              Scegli una specie dal catalogo, dai un nome alla pianta e salva ambiente
+              e misure utili: la dashboard le terra in memoria e usera questi dati anche
+              per affinare le dosi d&apos;acqua.
+            </DialogDescription>
+          </DialogHeader>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-            Annulla
-          </Button>
-          <Button onClick={handleAddPlant} disabled={isPending}>
-            <Plus data-icon="inline-start" />
-            Salva pianta
-          </Button>
-        </DialogFooter>
+        <ScrollArea className="max-h-[calc(92vh-10.75rem)] sm:max-h-[calc(90vh-11rem)]">
+          <div className="grid gap-4 px-4 py-4 sm:px-6 sm:py-5">
+            <div className="grid gap-2">
+              <Label htmlFor="species">Specie</Label>
+              <Select
+                value={form.speciesKey}
+                onValueChange={(value) =>
+                  setForm((current) => ({
+                    ...getNextPlantFormStateForSpecies(current, value as SpeciesKey),
+                  }))
+                }
+              >
+                <SelectTrigger id="species">
+                  <SelectValue placeholder="Scegli una specie" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[26rem]">
+                  {SPECIES_GROUPS.map((group) => (
+                    <SelectGroup key={group.label}>
+                      <SelectLabel>{group.label}</SelectLabel>
+                      {group.options.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Nome pianta o scheda</Label>
+                <Input
+                  id="name"
+                  value={form.customName}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, customName: event.target.value }))
+                  }
+                  placeholder={getPlantNamePlaceholder(form.speciesKey)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="quantity">Quantita</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  min={1}
+                  max={24}
+                  value={form.quantity}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      quantity: Number(event.target.value) || 1,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="environment">Ambiente</Label>
+                <Select
+                  value={form.environment}
+                  onValueChange={(value) =>
+                    setForm((current) => ({ ...current, environment: value as EnvironmentKey }))
+                  }
+                >
+                  <SelectTrigger id="environment">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {ENVIRONMENT_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="pot-type">Tipo di gestione</Label>
+                <Select
+                  value={form.potType}
+                  onValueChange={(value) =>
+                    setForm((current) => ({
+                      ...current,
+                      potType: value as PlantFormState["potType"],
+                    }))
+                  }
+                >
+                  <SelectTrigger id="pot-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {POT_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="exposure">Esposizione o punto luce</Label>
+              <Input
+                id="exposure"
+                value={form.exposure}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, exposure: event.target.value }))
+                }
+                placeholder="Es. sud-est, finestra luminosa, mezz'ombra"
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid gap-2">
+                <Label htmlFor="height">Altezza (cm)</Label>
+                <Input
+                  id="height"
+                  type="number"
+                  min={1}
+                  max={999}
+                  value={form.heightCm}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, heightCm: event.target.value }))
+                  }
+                  placeholder="Es. 35"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="spread">Larghezza (cm)</Label>
+                <Input
+                  id="spread"
+                  type="number"
+                  min={1}
+                  max={999}
+                  value={form.spreadCm}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, spreadCm: event.target.value }))
+                  }
+                  placeholder="Es. 28"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="pot-diameter">Diametro vaso (cm)</Label>
+                <Input
+                  id="pot-diameter"
+                  type="number"
+                  min={1}
+                  max={999}
+                  value={form.potDiameterCm}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      potDiameterCm: event.target.value,
+                    }))
+                  }
+                  placeholder="Es. 18"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="notes">Note utili</Label>
+              <Textarea
+                id="notes"
+                value={form.notes}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, notes: event.target.value }))
+                }
+                placeholder="Vaso grande, terreno drenante, ultime osservazioni..."
+              />
+            </div>
+          </div>
+        </ScrollArea>
+
+        <div className="border-t border-border/70 bg-background/92 px-4 py-4 sm:px-6">
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Chiudi</Button>
+            </DialogClose>
+            <Button onClick={handleAddPlant} disabled={isPending}>
+              <Plus data-icon="inline-start" />
+              Salva pianta
+            </Button>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -1654,132 +1661,138 @@ function renderMeasurementsDialog(_props: {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Modifica scheda pianta</DialogTitle>
-          <DialogDescription>
-            Qui puoi rinominare la pianta, aggiornare le misure e salvare note che
-            restano in memoria per tutti gli utenti del sito.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="w-[min(96vw,680px)] max-h-[92vh] gap-0 overflow-hidden p-0 sm:max-h-[90vh]">
+        <div className="border-b border-border/70 bg-background/92 px-4 py-4 sm:px-6 sm:py-5">
+          <DialogHeader className="pr-10">
+            <DialogTitle>Modifica scheda pianta</DialogTitle>
+            <DialogDescription>
+              Qui puoi rinominare la pianta, aggiornare le misure e salvare note che
+              restano in memoria per tutti gli utenti del sito.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        {measurementsForm ? (
-          <div className="grid gap-4">
-            <div className="rounded-[1.2rem] border border-border/70 bg-secondary/35 px-4 py-3 text-sm text-muted-foreground">
-              Scheda:{" "}
-              <span className="font-medium text-foreground">
-                {measurementsForm.plantName}
-              </span>
+        <ScrollArea className="max-h-[calc(92vh-10.75rem)] sm:max-h-[calc(90vh-11rem)]">
+          {measurementsForm ? (
+            <div className="grid gap-4 px-4 py-4 sm:px-6 sm:py-5">
+              <div className="rounded-[1.2rem] border border-border/70 bg-secondary/35 px-4 py-3 text-sm text-muted-foreground">
+                Scheda:{" "}
+                <span className="font-medium text-foreground">
+                  {measurementsForm.plantName}
+                </span>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-name">Nome scheda</Label>
+                  <Input
+                    id="edit-name"
+                    value={measurementsForm.customName}
+                    onChange={(event) =>
+                      setMeasurementsForm((current) =>
+                        current ? { ...current, customName: event.target.value } : current,
+                      )
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-exposure">Esposizione</Label>
+                  <Input
+                    id="edit-exposure"
+                    value={measurementsForm.exposure}
+                    onChange={(event) =>
+                      setMeasurementsForm((current) =>
+                        current ? { ...current, exposure: event.target.value } : current,
+                      )
+                    }
+                    placeholder="Es. sud-est, finestra luminosa"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-height">Altezza (cm)</Label>
+                  <Input
+                    id="edit-height"
+                    type="number"
+                    min={1}
+                    max={999}
+                    value={measurementsForm.heightCm}
+                    onChange={(event) =>
+                      setMeasurementsForm((current) =>
+                        current ? { ...current, heightCm: event.target.value } : current,
+                      )
+                    }
+                    placeholder="Es. 35"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-spread">Larghezza (cm)</Label>
+                  <Input
+                    id="edit-spread"
+                    type="number"
+                    min={1}
+                    max={999}
+                    value={measurementsForm.spreadCm}
+                    onChange={(event) =>
+                      setMeasurementsForm((current) =>
+                        current ? { ...current, spreadCm: event.target.value } : current,
+                      )
+                    }
+                    placeholder="Es. 28"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-pot-diameter">Diametro vaso (cm)</Label>
+                  <Input
+                    id="edit-pot-diameter"
+                    type="number"
+                    min={1}
+                    max={999}
+                    value={measurementsForm.potDiameterCm}
+                    onChange={(event) =>
+                      setMeasurementsForm((current) =>
+                        current
+                          ? { ...current, potDiameterCm: event.target.value }
+                          : current,
+                      )
+                    }
+                    placeholder="Es. 18"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="edit-notes">Note</Label>
+                <Textarea
+                  id="edit-notes"
+                  value={measurementsForm.notes}
+                  onChange={(event) =>
+                    setMeasurementsForm((current) =>
+                      current ? { ...current, notes: event.target.value } : current,
+                    )
+                  }
+                  placeholder="Osservazioni utili per irrigazione, crescita o posizione"
+                />
+              </div>
             </div>
+          ) : null}
+        </ScrollArea>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-name">Nome scheda</Label>
-                <Input
-                  id="edit-name"
-                  value={measurementsForm.customName}
-                  onChange={(event) =>
-                    setMeasurementsForm((current) =>
-                      current ? { ...current, customName: event.target.value } : current,
-                    )
-                  }
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-exposure">Esposizione</Label>
-                <Input
-                  id="edit-exposure"
-                  value={measurementsForm.exposure}
-                  onChange={(event) =>
-                    setMeasurementsForm((current) =>
-                      current ? { ...current, exposure: event.target.value } : current,
-                    )
-                  }
-                  placeholder="Es. sud-est, finestra luminosa"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-height">Altezza (cm)</Label>
-                <Input
-                  id="edit-height"
-                  type="number"
-                  min={1}
-                  max={999}
-                  value={measurementsForm.heightCm}
-                  onChange={(event) =>
-                    setMeasurementsForm((current) =>
-                      current ? { ...current, heightCm: event.target.value } : current,
-                    )
-                  }
-                  placeholder="Es. 35"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-spread">Larghezza (cm)</Label>
-                <Input
-                  id="edit-spread"
-                  type="number"
-                  min={1}
-                  max={999}
-                  value={measurementsForm.spreadCm}
-                  onChange={(event) =>
-                    setMeasurementsForm((current) =>
-                      current ? { ...current, spreadCm: event.target.value } : current,
-                    )
-                  }
-                  placeholder="Es. 28"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-pot-diameter">Diametro vaso (cm)</Label>
-                <Input
-                  id="edit-pot-diameter"
-                  type="number"
-                  min={1}
-                  max={999}
-                  value={measurementsForm.potDiameterCm}
-                  onChange={(event) =>
-                    setMeasurementsForm((current) =>
-                      current
-                        ? { ...current, potDiameterCm: event.target.value }
-                        : current,
-                    )
-                  }
-                  placeholder="Es. 18"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="edit-notes">Note</Label>
-              <Textarea
-                id="edit-notes"
-                value={measurementsForm.notes}
-                onChange={(event) =>
-                  setMeasurementsForm((current) =>
-                    current ? { ...current, notes: event.target.value } : current,
-                  )
-                }
-                placeholder="Osservazioni utili per irrigazione, crescita o posizione"
-              />
-            </div>
-          </div>
-        ) : null}
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Chiudi
-          </Button>
-          <Button
-            onClick={handleSaveMeasurements}
-            disabled={isPending || !measurementsForm}
-          >
-            Salva dettagli
-          </Button>
-        </DialogFooter>
+        <div className="border-t border-border/70 bg-background/92 px-4 py-4 sm:px-6">
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Chiudi</Button>
+            </DialogClose>
+            <Button
+              onClick={handleSaveMeasurements}
+              disabled={isPending || !measurementsForm}
+            >
+              Salva dettagli
+            </Button>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
